@@ -1,0 +1,242 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}HR Dashboard - HRMS{% endblock %}
+
+{% block page_header %}
+<div class="mb-6">
+    <h1 class="text-3xl font-bold text-base-content flex items-center gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+        </svg>
+        HR Dashboard
+    </h1>
+    <div class="breadcrumbs text-sm">
+        <ul>
+            <li><a href="{% url 'accounts:dashboard' %}">Dashboard</a></li>
+            <li>HR Dashboard</li>
+        </ul>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="stat bg-primary text-primary-content rounded-lg shadow-lg">
+            <div class="stat-figure text-primary-content/60">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                </svg>
+            </div>
+            <div class="stat-title text-primary-content/80">Total Employees</div>
+            <div class="stat-value text-3xl">{{ total_employees }}</div>
+        </div>
+        
+        <div class="stat bg-success text-success-content rounded-lg shadow-lg">
+            <div class="stat-figure text-success-content/60">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+            </div>
+            <div class="stat-title text-success-content/80">Today's Attendance</div>
+            <div class="stat-value text-3xl">{{ today_attendance.present }}</div>
+            <div class="stat-desc text-success-content/70">Absent: {{ today_attendance.absent }}</div>
+        </div>
+        
+        <div class="stat bg-warning text-warning-content rounded-lg shadow-lg">
+            <div class="stat-figure text-warning-content/60">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+            </div>
+            <div class="stat-title text-warning-content/80">Pending Leaves</div>
+            <div class="stat-value text-3xl">{{ pending_leaves }}</div>
+        </div>
+        
+        <div class="stat bg-error text-error-content rounded-lg shadow-lg">
+            <div class="stat-figure text-error-content/60">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+            </div>
+            <div class="stat-title text-error-content/80">Payroll Alerts</div>
+            <div class="stat-value text-3xl">{{ payroll_alerts }}</div>
+        </div>
+    </div>
+
+    <!-- Charts -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="card bg-base-100 shadow-xl">
+            <div class="card-body">
+                <h2 class="card-title">Monthly Attendance</h2>
+                <div class="chart-container">
+                    <canvas id="attendanceChart"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card bg-base-100 shadow-xl">
+            <div class="card-body">
+                <h2 class="card-title">Leave Types</h2>
+                <div class="chart-container">
+                    <canvas id="leaveTypesChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pending Leaves & Recent Attendance -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="card bg-base-100 shadow-xl">
+            <div class="card-body">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="card-title">Pending Leave Requests</h2>
+                    <a href="{% url 'leaves:list' %}?status=PENDING" class="btn btn-sm btn-ghost">View All</a>
+                </div>
+                {% if pending_leave_requests %}
+                <div class="space-y-3">
+                    {% for leave in pending_leave_requests %}
+                    <div class="card bg-base-200">
+                        <div class="card-body p-4">
+                            <div class="flex justify-between items-start">
+                                <div class="flex-1">
+                                    <h3 class="font-semibold">{{ leave.user.get_full_name|default:leave.user.username }}</h3>
+                                    <p class="text-sm">{{ leave.leave_type }} - {{ leave.days }} day(s)</p>
+                                    <p class="text-xs text-base-content/60 mt-1">{{ leave.date_from|date:"M d" }} to {{ leave.date_to|date:"M d, Y" }}</p>
+                                    <p class="text-sm mt-2">{{ leave.reason|truncatewords:15 }}</p>
+                                </div>
+                                <div class="flex flex-col gap-2">
+                                    <a href="{% url 'leaves:approve' leave.id %}" class="btn btn-sm btn-success">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                        </svg>
+                                        Approve
+                                    </a>
+                                    <a href="{% url 'leaves:reject' leave.id %}" class="btn btn-sm btn-error">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                        </svg>
+                                        Reject
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    <p>No pending leave requests</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="card bg-base-100 shadow-xl">
+            <div class="card-body">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="card-title">Recent Attendance</h2>
+                    <a href="{% url 'attendance:list' %}" class="btn btn-sm btn-ghost">View All</a>
+                </div>
+                {% if recent_attendance %}
+                <div class="overflow-x-auto">
+                    <table class="table table-zebra">
+                        <thead>
+                            <tr>
+                                <th>Employee</th>
+                                <th>Date</th>
+                                <th>Status</th>
+                                <th>Check In</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for att in recent_attendance %}
+                            <tr>
+                                <td>{{ att.user.get_full_name|default:att.user.username }}</td>
+                                <td>{{ att.date|date:"M d, Y" }}</td>
+                                <td>
+                                    <span class="badge badge-{{ att.status|lower|cut:' ' }}">{{ att.get_status_display }}</span>
+                                </td>
+                                <td>{{ att.check_in|time:"H:i"|default:"-" }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    <p>No attendance records</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Employee Stats -->
+    <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+            <h2 class="card-title mb-4">Employee Statistics</h2>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div class="stat bg-base-200 rounded-lg">
+                    <div class="stat-title text-primary">Developers</div>
+                    <div class="stat-value text-primary">{{ employees_by_role.DEV|default:0 }}</div>
+                </div>
+                <div class="stat bg-base-200 rounded-lg">
+                    <div class="stat-title text-info">UI/UX Designers</div>
+                    <div class="stat-value text-info">{{ employees_by_role.UIUX|default:0 }}</div>
+                </div>
+                <div class="stat bg-base-200 rounded-lg">
+                    <div class="stat-title text-success">Project Managers</div>
+                    <div class="stat-value text-success">{{ employees_by_role.PM|default:0 }}</div>
+                </div>
+                <div class="stat bg-base-200 rounded-lg">
+                    <div class="stat-title text-warning">BDE</div>
+                    <div class="stat-value text-warning">{{ employees_by_role.BDE|default:0 }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Attendance Chart
+    const attendanceData = {
+        labels: {{ attendance_labels|safe }},
+        datasets: [{
+            label: 'Present',
+            data: {{ attendance_present_data|safe }},
+            backgroundColor: 'hsl(var(--su))',
+            borderColor: 'hsl(var(--su))',
+            borderWidth: 2
+        }, {
+            label: 'Absent',
+            data: {{ attendance_absent_data|safe }},
+            backgroundColor: 'hsl(var(--er))',
+            borderColor: 'hsl(var(--er))',
+            borderWidth: 2
+        }]
+    };
+    
+    HRMS.createChart('attendanceChart', 'bar', attendanceData);
+    
+    // Leave Types Chart
+    const leaveTypesData = {
+        labels: {{ leave_types_labels|safe }},
+        datasets: [{
+            data: {{ leave_types_data|safe }},
+            backgroundColor: [
+                'hsl(var(--p))',
+                'hsl(var(--s))',
+                'hsl(var(--a))',
+                'hsl(var(--wa))'
+            ]
+        }]
+    };
+    
+    HRMS.createChart('leaveTypesChart', 'pie', leaveTypesData);
+</script>
+{% endblock %}

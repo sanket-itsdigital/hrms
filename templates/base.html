@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="cupcake">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}HRMS - Human Resource Management System{% endblock %}</title>
+    
+    <!-- Google Fonts - Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- DaisyUI -->
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.10/dist/full.min.css" rel="stylesheet" type="text/css" />
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    
+    <!-- DataTables CSS -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{% load static %}{% static 'css/custom.css' %}">
+    
+    {% block extra_css %}{% endblock %}
+    
+    <style>
+        /* Apply Inter font family globally */
+        * {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        }
+        
+        /* Minimalistic gradient backgrounds - subtle and clean */
+        .gradient-primary {
+            background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+        }
+        
+        .gradient-success {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        }
+        
+        .gradient-warning {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        }
+        
+        .gradient-info {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+        }
+        
+        .gradient-error {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        }
+        
+        /* Minimalistic sidebar active state - simple colored background */
+        .menu li > a.active {
+            background: #f3f4f6;
+            color: #111827;
+            border-radius: 8px;
+            font-weight: 600;
+        }
+        
+        .menu li > a.active svg {
+            color: #8b5cf6;
+        }
+        
+        .menu li > a.active::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 3px;
+            height: 40%;
+            background: #8b5cf6;
+            border-radius: 0 3px 3px 0;
+        }
+        
+        /* Minimalistic card hover effects - subtle lift */
+        .card-hover {
+            transition: all 0.2s ease;
+            border: 1px solid #e5e7eb;
+        }
+        
+        .card-hover:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            border-color: #d1d5db;
+        }
+        
+        /* Minimalistic stat card - clean design with subtle hover */
+        .stat-card {
+            transition: all 0.2s ease;
+            position: relative;
+            overflow: hidden;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+        }
+        
+        /* Minimalistic body background - clean light gray */
+        body {
+            background: #f5f7fa;
+            min-height: 100vh;
+        }
+        
+        /* Minimalistic sidebar - clean white */
+        .drawer-side aside {
+            background: #ffffff;
+            border-right: 1px solid #e5e7eb;
+            box-shadow: none;
+        }
+        
+        /* Minimalistic navbar - clean white */
+        .navbar {
+            background: #ffffff;
+            border-bottom: 1px solid #e5e7eb;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+        
+        /* Minimalistic card styling - clean white cards */
+        .card {
+            background: #ffffff;
+            border: 1px solid #e5e7eb;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            border-radius: 12px;
+        }
+        
+        /* Minimalistic sidebar header - simple colored background */
+        .drawer-side aside > div:first-child {
+            background: #ffffff;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        /* Minimalistic menu item hover effects */
+        .menu li > a:not(.active) {
+            transition: all 0.2s ease;
+            border-radius: 8px;
+            margin: 0.125rem 0;
+            color: #6b7280;
+        }
+        
+        .menu li > a:not(.active):hover {
+            background: #f3f4f6;
+            color: #111827;
+        }
+        
+        .menu li > a:not(.active) svg {
+            transition: color 0.2s ease;
+            color: #9ca3af;
+        }
+        
+        .menu li > a:not(.active):hover svg {
+            color: #111827;
+        }
+        
+        /* Enhanced stat cards with light glow */
+        .stat-card {
+            box-shadow: 0 10px 25px -5px rgba(59, 130, 246, 0.2),
+                        0 0 20px -5px rgba(59, 130, 246, 0.25);
+        }
+        
+        /* Minimalistic page header - clean and simple */
+        .page-header {
+            background: transparent;
+            border: none;
+            border-radius: 0;
+            box-shadow: none;
+            padding: 0;
+            margin-bottom: 2rem;
+        }
+        
+        /* Minimalistic empty state */
+        .empty-state {
+            background: transparent;
+            border: 1px dashed #d1d5db;
+            border-radius: 12px;
+            padding: 2rem;
+        }
+        
+        /* Minimalistic table styling */
+        .table {
+            background: #ffffff;
+        }
+        
+        .table thead {
+            background: #f9fafb;
+        }
+        
+        .table tbody tr:hover {
+            background: #f9fafb;
+            transition: background 0.2s ease;
+        }
+        
+        /* Badge enhancements */
+        .badge {
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* Button enhancements */
+        .btn {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .btn:hover {
+            box-shadow: 0 6px 12px -2px rgba(0, 0, 0, 0.15);
+            transform: translateY(-2px);
+        }
+        
+        /* Minimalistic chart container */
+        .chart-container {
+            background: #ffffff;
+            border-radius: 8px;
+            padding: 1rem;
+        }
+        
+        /* Minimalistic footer */
+        footer {
+            background: #ffffff;
+            border-top: 1px solid #e5e7eb;
+        }
+        
+        /* Minimalistic button styling */
+        .btn {
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+        
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* Minimalistic badge styling */
+        .badge {
+            border-radius: 6px;
+            font-weight: 500;
+        }
+        
+        /* Remove heavy shadows and effects */
+        .shadow-xl {
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+        
+        .shadow-lg {
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+        
+        /* Minimalistic main content spacing */
+        main {
+            background: transparent;
+        }
+        
+        /* Clean input styling */
+        .input, .select, .textarea {
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+        }
+        
+        .input:focus, .select:focus, .textarea:focus {
+            border-color: #8b5cf6;
+            box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+        }
+        
+        /* Minimalistic divider */
+        .divider {
+            border-color: #e5e7eb;
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+    <div class="drawer lg:drawer-open">
+        <input id="drawer-toggle" type="checkbox" class="drawer-toggle" />
+        
+        <!-- Sidebar -->
+        {% include 'includes/sidebar.html' %}
+        
+        <!-- Main Content -->
+        <div class="drawer-content flex flex-col">
+            <!-- Top Navbar -->
+            {% include 'includes/navbar.html' %}
+            
+            <!-- Page Content -->
+            <main class="flex-1 p-6">
+                <!-- Messages -->
+                {% if messages %}
+                    <div class="mb-4">
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} mb-2">
+                                <span>{{ message }}</span>
+                                <button class="btn btn-sm btn-ghost" onclick="this.parentElement.remove()">✕</button>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+                
+                <!-- Page Header -->
+                {% block page_header %}{% endblock %}
+                
+                <!-- Main Content Block -->
+                {% block content %}{% endblock %}
+            </main>
+            
+            <!-- Footer -->
+            <footer class="footer footer-center p-4 bg-base-300 text-base-content">
+                <aside>
+                    <p>© 2024 HRMS. All rights reserved. Version 1.0.0</p>
+                </aside>
+            </footer>
+        </div>
+    </div>
+    
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <!-- DataTables JS -->
+    <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+    <!-- SortableJS for Kanban -->
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+    <!-- Custom JS -->
+    <script src="{% load static %}{% static 'js/custom.js' %}"></script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

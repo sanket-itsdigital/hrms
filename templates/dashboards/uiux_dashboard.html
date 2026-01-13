@@ -1,0 +1,277 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}UI/UX Designer Dashboard - HRMS{% endblock %}
+
+{% block page_header %}
+<div class="mb-6">
+    <h1 class="text-3xl font-bold text-base-content flex items-center gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
+        </svg>
+        UI/UX Designer Dashboard
+    </h1>
+    <div class="breadcrumbs text-sm">
+        <ul>
+            <li><a href="{% url 'accounts:dashboard' %}">Dashboard</a></li>
+            <li>UI/UX Dashboard</li>
+        </ul>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="stat bg-primary text-primary-content rounded-lg shadow-lg">
+            <div class="stat-figure text-primary-content/60">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
+                </svg>
+            </div>
+            <div class="stat-title text-primary-content/80">Design Tasks</div>
+            <div class="stat-value text-3xl">{{ design_tasks_count }}</div>
+            <div class="stat-desc text-primary-content/70">Completed: {{ completed_design_tasks }}</div>
+        </div>
+        
+        <div class="stat bg-success text-success-content rounded-lg shadow-lg">
+            <div class="stat-figure text-success-content/60">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+                </svg>
+            </div>
+            <div class="stat-title text-success-content/80">Assigned Projects</div>
+            <div class="stat-value text-3xl">{{ assigned_projects_count }}</div>
+        </div>
+        
+        <div class="stat bg-warning text-warning-content rounded-lg shadow-lg">
+            <div class="stat-figure text-warning-content/60">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                </svg>
+            </div>
+            <div class="stat-title text-warning-content/80">Pending Reviews</div>
+            <div class="stat-value text-3xl">{{ pending_reviews_count }}</div>
+        </div>
+        
+        <div class="stat bg-info text-info-content rounded-lg shadow-lg">
+            <div class="stat-figure text-info-content/60">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+            </div>
+            <div class="stat-title text-info-content/80">Assets Uploaded</div>
+            <div class="stat-value text-3xl">{{ assets_count }}</div>
+        </div>
+    </div>
+
+    <!-- Design Tasks Kanban -->
+    <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="card-title">Design Tasks</h2>
+                <a href="{% url 'tasks:my-tasks' %}" class="btn btn-sm btn-ghost">View All</a>
+            </div>
+            <div class="kanban-board">
+                <div class="kanban-column" data-status="TO_DO">
+                    <div class="kanban-column-header">
+                        <h6>To Do</h6>
+                        <span class="badge badge-secondary">{{ tasks_by_status.TO_DO|default:0 }}</span>
+                    </div>
+                    <div class="kanban-items">
+                        {% for task in design_tasks %}
+                            {% if task.status == 'TO_DO' %}
+                            <div class="kanban-item" data-item-id="{{ task.id }}">
+                                <h6 class="font-semibold">{{ task.title }}</h6>
+                                <p class="text-xs text-base-content/60 mt-1">{{ task.project.name }}</p>
+                                {% if task.figma_link %}
+                                <a href="{{ task.figma_link }}" target="_blank" class="btn btn-sm btn-primary btn-block mt-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                                    </svg>
+                                    Figma
+                                </a>
+                                {% endif %}
+                            </div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="kanban-column" data-status="IN_PROGRESS">
+                    <div class="kanban-column-header">
+                        <h6>In Progress</h6>
+                        <span class="badge badge-info">{{ tasks_by_status.IN_PROGRESS|default:0 }}</span>
+                    </div>
+                    <div class="kanban-items">
+                        {% for task in design_tasks %}
+                            {% if task.status == 'IN_PROGRESS' %}
+                            <div class="kanban-item" data-item-id="{{ task.id }}">
+                                <h6 class="font-semibold">{{ task.title }}</h6>
+                                <p class="text-xs text-base-content/60 mt-1">{{ task.project.name }}</p>
+                                {% if task.figma_link %}
+                                <a href="{{ task.figma_link }}" target="_blank" class="btn btn-sm btn-primary btn-block mt-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                                    </svg>
+                                    Figma
+                                </a>
+                                {% endif %}
+                            </div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="kanban-column" data-status="COMPLETED">
+                    <div class="kanban-column-header">
+                        <h6>Completed</h6>
+                        <span class="badge badge-success">{{ tasks_by_status.COMPLETED|default:0 }}</span>
+                    </div>
+                    <div class="kanban-items">
+                        {% for task in design_tasks %}
+                            {% if task.status == 'COMPLETED' %}
+                            <div class="kanban-item" data-item-id="{{ task.id }}">
+                                <h6 class="font-semibold">{{ task.title }}</h6>
+                                <p class="text-xs text-base-content/60 mt-1">{{ task.project.name }}</p>
+                                {% if task.figma_link %}
+                                <a href="{{ task.figma_link }}" target="_blank" class="btn btn-sm btn-primary btn-block mt-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                                    </svg>
+                                    Figma
+                                </a>
+                                {% endif %}
+                            </div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Updates & Quick Actions -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="card bg-base-100 shadow-xl">
+            <div class="card-body">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="card-title">Recent Daily Updates</h2>
+                    <a href="{% url 'daily_updates:list' %}" class="btn btn-sm btn-ghost">View All</a>
+                </div>
+                {% if recent_updates %}
+                <div class="space-y-3">
+                    {% for update in recent_updates %}
+                    <div class="card bg-base-200">
+                        <div class="card-body p-4">
+                            <div class="flex justify-between items-start">
+                                <div class="flex-1">
+                                    <h4 class="font-semibold">{{ update.project.name }}</h4>
+                                    <p class="text-sm text-base-content/60 mt-1">{{ update.description|truncatewords:20 }}</p>
+                                    {% if update.figma_link %}
+                                    <a href="{{ update.figma_link }}" target="_blank" class="btn btn-sm btn-primary mt-2">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                                        </svg>
+                                        Figma Link
+                                    </a>
+                                    {% endif %}
+                                    {% if update.attachments.count > 0 %}
+                                    <div class="text-xs text-base-content/50 mt-2">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                                        </svg>
+                                        {{ update.attachments.count }} attachment(s)
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                <span class="text-xs text-base-content/50">{{ update.date|date:"M d, Y" }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    <p>No daily updates yet</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="space-y-4">
+            <div class="card bg-base-100 shadow-xl">
+                <div class="card-body">
+                    <h2 class="card-title">Quick Actions</h2>
+                    <div class="space-y-2">
+                        <a href="{% url 'daily_updates:create' %}" class="btn btn-primary btn-block">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                            </svg>
+                            Submit Daily Update
+                        </a>
+                        <a href="{% url 'tasks:my-tasks' %}" class="btn btn-outline btn-block">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                            </svg>
+                            View All Design Tasks
+                        </a>
+                        <a href="{% url 'leaves:create' %}" class="btn btn-warning btn-block">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                            Apply for Leave
+                        </a>
+                        <a href="{% url 'attendance:my-attendance' %}" class="btn btn-info btn-block">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                            View My Attendance
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Design Assets -->
+            <div class="card bg-base-100 shadow-xl">
+                <div class="card-body">
+                    <h2 class="card-title">Recent Design Assets</h2>
+                    {% if recent_assets %}
+                    <div class="grid grid-cols-2 gap-2">
+                        {% for asset in recent_assets %}
+                        <div class="card bg-base-200">
+                            {% if asset.thumbnail %}
+                            <figure>
+                                <img src="{{ asset.thumbnail.url }}" alt="Design asset" class="h-24 w-full object-cover" />
+                            </figure>
+                            {% else %}
+                            <div class="h-24 bg-base-300 flex items-center justify-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-base-content/30" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                </svg>
+                            </div>
+                            {% endif %}
+                            <div class="card-body p-2">
+                                <p class="text-xs text-base-content/60 truncate">{{ asset.file.name|truncatewords:3 }}</p>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="empty-state">
+                        <p>No design assets</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Initialize Kanban
+    HRMS.initKanban();
+</script>
+{% endblock %}

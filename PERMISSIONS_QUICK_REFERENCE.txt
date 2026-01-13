@@ -1,0 +1,158 @@
+================================================================================
+HRMS ROLE PERMISSIONS - QUICK REFERENCE
+================================================================================
+
+✓ = Has Permission    ✗ = No Permission
+
+================================================================================
+CEO (Chief Executive Officer) - FULL ADMIN ACCESS
+================================================================================
+
+Users:        ✓ Create  ✓ Read  ✓ Update  ✓ Delete  ✓ Assign Role
+Projects:     ✓ Create  ✓ Read  ✓ Update  ✓ Delete  ✓ Assign Team  ✓ View Budget
+Tasks:        ✓ Create  ✓ Read  ✓ Update  ✓ Delete  ✓ Assign Anyone
+Attendance:   ✗ Create  ✓ Read  ✗ Update  ✗ Delete  ✓ View All  ✓ Reports
+Leaves:       ✗ Create  ✓ Read  ✗ Update  ✗ Delete  ✗ Approve  ✓ View All
+Payroll:      ✗ Create  ✓ Read  ✓ Update  ✗ Delete  ✓ View All  ✗ Payslip
+Daily Updates:✗ Create  ✓ Read  ✗ Update  ✗ Delete  ✓ View All
+Leads:        ✓ Create  ✓ Read  ✓ Update  ✓ Delete  ✓ Convert to Project
+Reports:      ✓ Generate  ✓ View All  ✓ Export PDF/CSV
+Notifications:✓ Create  ✓ Read  ✓ View All
+Audit Logs:   ✓ View All
+
+================================================================================
+HR (Human Resources) - ATTENDANCE, LEAVES, PAYROLL MANAGEMENT
+================================================================================
+
+Users:        ✗ Create  ✓ Read  ✗ Update  ✗ Delete  ✗ Assign Role  ✓ View Profiles
+Projects:     ✗ Create  ✓ Read* ✗ Update  ✗ Delete  ✗ Assign Team  ✗ View Budget
+Tasks:        ✗ Create  ✗ Read  ✗ Update  ✗ Delete  ✗ Assign
+Attendance:   ✓ Create  ✓ Read  ✓ Update  ✓ Delete  ✓ View All  ✓ Mark  ✓ Export
+Leaves:       ✗ Create  ✓ Read  ✗ Update  ✗ Delete  ✓ Approve  ✓ Reject  ✓ Calendar
+Payroll:      ✓ Create  ✓ Read  ✓ Update  ✓ Delete  ✓ Calculate  ✓ Payslip  ✓ Export
+Daily Updates:✗ Create  ✗ Read  ✗ Update  ✗ Delete
+Leads:        ✗ Create  ✗ Read  ✗ Update  ✗ Delete
+Reports:      ✓ Generate  ✓ View All  ✓ Export  ✓ Attendance  ✓ Payroll  ✓ Leaves
+Notifications:✓ Create  ✓ Read  ✓ View All
+Audit Logs:   ✓ View All  ✓ Attendance  ✓ Payroll  ✓ Leaves
+
+* Limited read-only (for context only)
+
+================================================================================
+PM (Project Manager) - ASSIGNED PROJECTS ONLY
+================================================================================
+
+Users:        ✗ Create  ✓ Read  ✗ Update  ✗ Delete  ✗ Assign Role  ✓ View Team
+Projects:     ✗ Create  ✓ Read  ✓ Update** ✗ Delete  ✓ Assign Team** ✓ View Budget
+Tasks:        ✓ Create  ✓ Read  ✓ Update  ✓ Delete  ✗ Assign Anyone  ✓ Assign Dev/UIUX
+Attendance:   ✗ Create  ✗ Read  ✗ Update  ✗ Delete
+Leaves:       ✗ Create  ✗ Read  ✗ Update  ✗ Delete  ✗ Approve
+Payroll:      ✗ Create  ✗ Read  ✗ Update  ✗ Delete
+Daily Updates:✗ Create  ✓ Read** ✗ Update  ✗ Delete
+Leads:        ✗ Create  ✗ Read  ✗ Update  ✗ Delete
+Reports:      ✗ Generate  ✗ View All  ✓ Project Reports
+Notifications:✓ Create  ✓ Read  ✗ View All
+Audit Logs:   ✗ View All  ✓ Project Logs
+
+** Only for assigned projects
+
+================================================================================
+DEV (Developer) - ASSIGNED TASKS & DAILY UPDATES
+================================================================================
+
+Users:        ✗ Create  ✗ Read  ✗ Update  ✗ Delete  ✓ View Own
+Projects:     ✗ Create  ✓ Read  ✗ Update  ✗ Delete  ✓ View All (Read-Only)
+Tasks:        ✗ Create  ✓ Read  ✓ Update*** ✗ Delete  ✓ View Assigned  ✓ Change Status
+Attendance:   ✗ Create  ✓ Read  ✗ Update  ✗ Delete  ✓ View Own
+Leaves:       ✓ Create  ✓ Read  ✓ Update  ✓ Delete  ✗ Approve  ✓ View Own
+Payroll:      ✗ Create  ✗ Read  ✗ Update  ✗ Delete
+Daily Updates:✓ Create  ✓ Read  ✓ Update  ✓ Delete  ✓ View Own  ✓ View Project
+Leads:        ✗ Create  ✗ Read  ✗ Update  ✗ Delete
+Reports:      ✗ Generate  ✗ View All
+Notifications:✗ Create  ✓ Read  ✓ View Own
+Audit Logs:   ✗ View All
+
+*** Only for assigned tasks
+
+================================================================================
+UIUX (UI/UX Designer) - DESIGN TASKS WITH ASSETS
+================================================================================
+
+Users:        ✗ Create  ✗ Read  ✗ Update  ✗ Delete  ✓ View Own
+Projects:     ✗ Create  ✓ Read  ✗ Update  ✗ Delete  ✓ View All (Read-Only)
+Tasks:        ✗ Create  ✓ Read  ✓ Update*** ✗ Delete  ✓ View Assigned  ✓ Upload Assets  ✓ Figma Links
+Attendance:   ✗ Create  ✓ Read  ✗ Update  ✗ Delete  ✓ View Own
+Leaves:       ✓ Create  ✓ Read  ✓ Update  ✓ Delete  ✗ Approve  ✓ View Own
+Payroll:      ✗ Create  ✗ Read  ✗ Update  ✗ Delete
+Daily Updates:✓ Create  ✓ Read  ✓ Update  ✓ Delete  ✓ View Own  ✓ Upload Assets  ✓ Figma Links
+Leads:        ✗ Create  ✗ Read  ✗ Update  ✗ Delete
+Reports:      ✗ Generate  ✗ View All
+Notifications:✗ Create  ✓ Read  ✓ View Own
+Audit Logs:   ✗ View All
+
+*** Only for assigned design tasks
+
+================================================================================
+BDE (Business Development Executive) - LEADS/CRM MANAGEMENT
+================================================================================
+
+Users:        ✗ Create  ✗ Read  ✗ Update  ✗ Delete  ✓ View Own
+Projects:     ✗ Create  ✓ Read* ✗ Update  ✗ Delete  ✓ View Overview  ✓ Recommend
+Tasks:        ✗ Create  ✗ Read  ✗ Update  ✗ Delete
+Attendance:   ✗ Create  ✓ Read  ✗ Update  ✗ Delete  ✓ View Own
+Leaves:       ✓ Create  ✓ Read  ✓ Update  ✓ Delete  ✗ Approve  ✓ View Own
+Payroll:      ✗ Create  ✗ Read  ✗ Update  ✗ Delete
+Daily Updates:✗ Create  ✗ Read  ✗ Update  ✗ Delete
+Leads:        ✓ Create  ✓ Read  ✓ Update  ✓ Delete  ✓ View All  ✓ Pipeline  ✓ Proposals  ✓ Meetings
+Reports:      ✗ Generate  ✗ View All  ✓ Lead Reports  ✓ Conversion Reports
+Notifications:✗ Create  ✓ Read  ✓ View Own
+Audit Logs:   ✗ View All  ✓ Lead Logs
+
+* Read-only overview (cannot see project internals)
+
+================================================================================
+PERMISSION CHECK EXAMPLES
+================================================================================
+
+Python:
+  from accounts.utils import has_permission
+  
+  # Check if user can create projects
+  if has_permission(user, 'projects', 'create'):
+      # CEO only
+  
+  # Check if user can assign tasks to anyone
+  if has_permission(user, 'tasks', 'assign_anyone'):
+      # CEO only
+  
+  # Check if user can mark attendance
+  if has_permission(user, 'attendance', 'create'):
+      # HR only
+
+Template:
+  {% load permission_tags %}
+  
+  {% if user|can_access:"projects:create" %}
+      <a href="{% url 'projects:create' %}">Create Project</a>
+  {% endif %}
+
+Decorator:
+  from accounts.utils import permission_required
+  
+  @permission_required('projects', 'create')
+  def create_project(request):
+      # Only users with permission can access
+      pass
+
+================================================================================
+KEY DIFFERENCES
+================================================================================
+
+CEO:      Full access to everything, can override any restriction
+HR:       Full access to attendance/leaves/payroll, NO project internals
+PM:       Only assigned projects, can assign Dev/UIUX to assigned projects
+DEV:      Read-only projects, can update assigned tasks, submit daily updates
+UIUX:     Same as DEV + can upload assets and add Figma links
+BDE:      Full access to leads, read-only project overview
+
+================================================================================

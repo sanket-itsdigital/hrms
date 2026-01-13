@@ -1,0 +1,318 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}BDE Dashboard - HRMS{% endblock %}
+
+{% block page_header %}
+<div class="mb-6">
+    <h1 class="text-3xl font-bold text-base-content flex items-center gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+        </svg>
+        Business Development Executive Dashboard
+    </h1>
+    <div class="breadcrumbs text-sm">
+        <ul>
+            <li><a href="{% url 'accounts:dashboard' %}">Dashboard</a></li>
+            <li>BDE Dashboard</li>
+        </ul>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="stat bg-primary text-primary-content rounded-lg shadow-lg">
+            <div class="stat-figure text-primary-content/60">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                </svg>
+            </div>
+            <div class="stat-title text-primary-content/80">Total Leads</div>
+            <div class="stat-value text-3xl">{{ total_leads }}</div>
+            <div class="stat-desc text-primary-content/70">Active: {{ active_leads }}</div>
+        </div>
+        
+        <div class="stat bg-success text-success-content rounded-lg shadow-lg">
+            <div class="stat-figure text-success-content/60">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+                </svg>
+            </div>
+            <div class="stat-title text-success-content/80">Won Leads</div>
+            <div class="stat-value text-3xl">{{ won_leads }}</div>
+            <div class="stat-desc text-success-content/70">Conversion: {{ conversion_rate }}%</div>
+        </div>
+        
+        <div class="stat bg-warning text-warning-content rounded-lg shadow-lg">
+            <div class="stat-figure text-warning-content/60">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+            </div>
+            <div class="stat-title text-warning-content/80">Expected Revenue</div>
+            <div class="stat-value text-3xl">${{ expected_revenue|floatformat:0 }}</div>
+        </div>
+        
+        <div class="stat bg-info text-info-content rounded-lg shadow-lg">
+            <div class="stat-figure text-info-content/60">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+            </div>
+            <div class="stat-title text-info-content/80">Follow-ups Today</div>
+            <div class="stat-value text-3xl">{{ followups_today }}</div>
+        </div>
+    </div>
+
+    <!-- Leads Pipeline Kanban -->
+    <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="card-title">Leads Pipeline</h2>
+                <a href="{% url 'leads_crm:list' %}" class="btn btn-sm btn-ghost">View All</a>
+            </div>
+            <div class="kanban-board">
+                <div class="kanban-column" data-status="NEW">
+                    <div class="kanban-column-header">
+                        <h6>New</h6>
+                        <span class="badge badge-secondary">{{ leads_by_stage.NEW|default:0 }}</span>
+                    </div>
+                    <div class="kanban-items">
+                        {% for lead in leads %}
+                            {% if lead.stage == 'NEW' %}
+                            <div class="kanban-item" data-item-id="{{ lead.id }}">
+                                <h6 class="font-semibold">{{ lead.name }}</h6>
+                                <p class="text-xs text-base-content/60 mt-1">{{ lead.company_name }}</p>
+                                <div class="text-xs text-base-content/50 mt-2">
+                                    Expected: ${{ lead.expected_revenue|floatformat:0|default:"0" }}
+                                </div>
+                            </div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="kanban-column" data-status="CONTACTED">
+                    <div class="kanban-column-header">
+                        <h6>Contacted</h6>
+                        <span class="badge badge-info">{{ leads_by_stage.CONTACTED|default:0 }}</span>
+                    </div>
+                    <div class="kanban-items">
+                        {% for lead in leads %}
+                            {% if lead.stage == 'CONTACTED' %}
+                            <div class="kanban-item" data-item-id="{{ lead.id }}">
+                                <h6 class="font-semibold">{{ lead.name }}</h6>
+                                <p class="text-xs text-base-content/60 mt-1">{{ lead.company_name }}</p>
+                                <div class="text-xs text-base-content/50 mt-2">
+                                    Expected: ${{ lead.expected_revenue|floatformat:0|default:"0" }}
+                                </div>
+                            </div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="kanban-column" data-status="PROPOSAL_SENT">
+                    <div class="kanban-column-header">
+                        <h6>Proposal Sent</h6>
+                        <span class="badge badge-warning">{{ leads_by_stage.PROPOSAL_SENT|default:0 }}</span>
+                    </div>
+                    <div class="kanban-items">
+                        {% for lead in leads %}
+                            {% if lead.stage == 'PROPOSAL_SENT' %}
+                            <div class="kanban-item" data-item-id="{{ lead.id }}">
+                                <h6 class="font-semibold">{{ lead.name }}</h6>
+                                <p class="text-xs text-base-content/60 mt-1">{{ lead.company_name }}</p>
+                                <div class="text-xs text-base-content/50 mt-2">
+                                    Expected: ${{ lead.expected_revenue|floatformat:0|default:"0" }}
+                                </div>
+                            </div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="kanban-column" data-status="NEGOTIATION">
+                    <div class="kanban-column-header">
+                        <h6>Negotiation</h6>
+                        <span class="badge badge-primary">{{ leads_by_stage.NEGOTIATION|default:0 }}</span>
+                    </div>
+                    <div class="kanban-items">
+                        {% for lead in leads %}
+                            {% if lead.stage == 'NEGOTIATION' %}
+                            <div class="kanban-item" data-item-id="{{ lead.id }}">
+                                <h6 class="font-semibold">{{ lead.name }}</h6>
+                                <p class="text-xs text-base-content/60 mt-1">{{ lead.company_name }}</p>
+                                <div class="text-xs text-base-content/50 mt-2">
+                                    Expected: ${{ lead.expected_revenue|floatformat:0|default:"0" }}
+                                </div>
+                            </div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="kanban-column" data-status="CLOSED_WON">
+                    <div class="kanban-column-header">
+                        <h6>Won</h6>
+                        <span class="badge badge-success">{{ leads_by_stage.CLOSED_WON|default:0 }}</span>
+                    </div>
+                    <div class="kanban-items">
+                        {% for lead in leads %}
+                            {% if lead.stage == 'CLOSED_WON' %}
+                            <div class="kanban-item" data-item-id="{{ lead.id }}">
+                                <h6 class="font-semibold">{{ lead.name }}</h6>
+                                <p class="text-xs text-base-content/60 mt-1">{{ lead.company_name }}</p>
+                                <div class="text-xs text-success mt-2">
+                                    Won: ${{ lead.expected_revenue|floatformat:0|default:"0" }}
+                                </div>
+                            </div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts & Recent Activity -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="card bg-base-100 shadow-xl">
+            <div class="card-body">
+                <h2 class="card-title">Conversion Rate</h2>
+                <div class="chart-container">
+                    <canvas id="conversionChart"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card bg-base-100 shadow-xl">
+            <div class="card-body">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="card-title">Recent Follow-ups</h2>
+                    <a href="{% url 'leads_crm:meetings' %}" class="btn btn-sm btn-ghost">View All</a>
+                </div>
+                {% if recent_followups %}
+                <div class="space-y-2">
+                    {% for followup in recent_followups %}
+                    <div class="card bg-base-200">
+                        <div class="card-body p-3">
+                            <div class="flex justify-between items-start">
+                                <div class="flex-1">
+                                    <h4 class="font-semibold">{{ followup.lead.name }}</h4>
+                                    <p class="text-sm text-base-content/60 line-clamp-2">{{ followup.notes|truncatewords:15 }}</p>
+                                    <div class="text-xs text-base-content/50 mt-1">
+                                        {{ followup.get_meeting_type_display }}
+                                    </div>
+                                </div>
+                                <span class="text-xs text-base-content/50">{{ followup.date|date:"M d, Y" }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    <p>No recent follow-ups</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions & Revenue Projection -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="card bg-base-100 shadow-xl">
+            <div class="card-body">
+                <h2 class="card-title">Quick Actions</h2>
+                <div class="space-y-2">
+                    <a href="{% url 'leads_crm:create' %}" class="btn btn-primary btn-block">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                        </svg>
+                        Add New Lead
+                    </a>
+                    <a href="{% url 'leads_crm:proposals' %}" class="btn btn-outline btn-block">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        Create Proposal
+                    </a>
+                    <a href="{% url 'leads_crm:meetings' %}" class="btn btn-info btn-block">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        Log Meeting
+                    </a>
+                    <a href="{% url 'leaves:create' %}" class="btn btn-warning btn-block">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        Apply for Leave
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card bg-base-100 shadow-xl">
+            <div class="card-body">
+                <h2 class="card-title">Revenue Projection</h2>
+                <div class="chart-container">
+                    <canvas id="revenueProjectionChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Initialize Kanban
+    HRMS.initKanban();
+    
+    // Conversion Chart
+    const conversionData = {
+        labels: {{ conversion_labels|safe }},
+        datasets: [{
+            label: 'Leads',
+            data: {{ conversion_data|safe }},
+            backgroundColor: [
+                'hsl(var(--p))',
+                'hsl(var(--s))',
+                'hsl(var(--a))',
+                'hsl(var(--wa))',
+                'hsl(var(--su))',
+                'hsl(var(--er))'
+            ]
+        }]
+    };
+    
+    HRMS.createChart('conversionChart', 'bar', conversionData);
+    
+    // Revenue Projection Chart
+    const revenueProjectionData = {
+        labels: {{ revenue_projection_labels|safe }},
+        datasets: [{
+            label: 'Projected Revenue',
+            data: {{ revenue_projection_data|safe }},
+            backgroundColor: 'hsla(var(--a) / 0.2)',
+            borderColor: 'hsl(var(--a))',
+            borderWidth: 2,
+            fill: true
+        }]
+    };
+    
+    HRMS.createChart('revenueProjectionChart', 'line', revenueProjectionData, {
+        plugins: {
+            legend: {
+                display: true
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true
+            }
+        }
+    });
+</script>
+{% endblock %}

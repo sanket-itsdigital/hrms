@@ -13,6 +13,7 @@ class Attendance(models.Model):
         ('LEAVE', 'On Leave'),
         ('LATE', 'Late'),
         ('HALF_DAY', 'Half Day'),
+        ('WORK_FROM_HOME', 'Work From Home'),
     ]
 
     organization = models.ForeignKey(Organization, on_delete=models.CASCADE, related_name='attendances')

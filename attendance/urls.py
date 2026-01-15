@@ -1,22 +1,19 @@
 from django.urls import path
-from django.shortcuts import render
+from attendance.views.web import (
+    list_attendance, my_attendance, create_attendance,
+    update_attendance, delete_attendance, bulk_attendance,
+    attendance_report, export_attendance
+)
 
 app_name = 'attendance'
 
-# Placeholder views
-def list_view(request):
-    return render(request, 'placeholder.html', {
-        'page_title': 'Attendance List',
-        'message': 'Attendance list feature is under development'
-    })
-
-def my_attendance_view(request):
-    return render(request, 'placeholder.html', {
-        'page_title': 'My Attendance',
-        'message': 'My attendance feature is under development'
-    })
-
 urlpatterns = [
-    path('', list_view, name='list'),
-    path('my-attendance/', my_attendance_view, name='my-attendance'),
+    path('', list_attendance, name='list'),
+    path('my-attendance/', my_attendance, name='my-attendance'),
+    path('create/', create_attendance, name='create'),
+    path('bulk/', bulk_attendance, name='bulk'),
+    path('<int:id>/', update_attendance, name='update'),
+    path('<int:id>/delete/', delete_attendance, name='delete'),
+    path('report/', attendance_report, name='report'),
+    path('export/', export_attendance, name='export'),
 ]

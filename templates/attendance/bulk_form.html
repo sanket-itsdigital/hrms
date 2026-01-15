@@ -1,0 +1,155 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ title }} - HRMS{% endblock %}
+
+{% block page_header %}
+<div class="mb-6">
+    <h1 class="text-3xl font-bold text-gray-900 flex items-center gap-3 mb-2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+        </svg>
+        {{ title }}
+    </h1>
+    <div class="breadcrumbs text-sm">
+        <ul>
+            <li><a href="{% url 'accounts:dashboard' %}" class="text-gray-500 hover:text-gray-700">Dashboard</a></li>
+            <li><a href="{% url 'attendance:list' %}" class="text-gray-500 hover:text-gray-700">Attendance</a></li>
+            <li class="text-gray-400">Bulk Entry</li>
+        </ul>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <div class="card shadow-xl">
+        <div class="card-body">
+            <div class="alert alert-info mb-6">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current shrink-0 w-6 h-6">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <span>Select multiple employees and mark their attendance for a specific date. If a record already exists for an employee on that date, it will be updated.</span>
+            </div>
+            
+            <form method="post" class="space-y-6">
+                {% csrf_token %}
+                
+                <!-- Date and Status -->
+                <div class="space-y-4">
+                    <h2 class="text-xl font-semibold text-gray-800 mb-4">Date & Status</h2>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text font-medium">Date <span class="text-error">*</span></span>
+                            </label>
+                            {{ form.date }}
+                            {% if form.date.errors %}
+                                <label class="label">
+                                    <span class="label-text-alt text-error">{{ form.date.errors }}</span>
+                                </label>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text font-medium">Status <span class="text-error">*</span></span>
+                            </label>
+                            {{ form.status }}
+                            {% if form.status.errors %}
+                                <label class="label">
+                                    <span class="label-text-alt text-error">{{ form.status.errors }}</span>
+                                </label>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Employees Selection -->
+                <div class="divider"></div>
+                <div class="space-y-4">
+                    <h2 class="text-xl font-semibold text-gray-800 mb-4">Select Employees</h2>
+                    
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text font-medium">Employees <span class="text-error">*</span></span>
+                        </label>
+                        {% if form.users.errors %}
+                            <div class="alert alert-error mb-2">
+                                <span>{{ form.users.errors }}</span>
+                            </div>
+                        {% endif %}
+                        
+                        <div class="border border-gray-200 rounded-lg p-4 max-h-96 overflow-y-auto">
+                            <div class="space-y-2">
+                                {% for checkbox in form.users %}
+                                    <label class="flex items-center gap-3 p-2 hover:bg-gray-50 rounded cursor-pointer">
+                                        {{ checkbox.tag }}
+                                        <span class="text-sm">{{ checkbox.choice_label }}</span>
+                                    </label>
+                                {% empty %}
+                                    <p class="text-gray-500 text-sm">No employees available.</p>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <label class="label">
+                            <span class="label-text-alt text-gray-500">Select one or more employees to mark attendance</span>
+                        </label>
+                    </div>
+                </div>
+                
+                <!-- Time Tracking -->
+                <div class="divider"></div>
+                <div class="space-y-4">
+                    <h2 class="text-xl font-semibold text-gray-800 mb-4">Time Tracking (Optional)</h2>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text font-medium">Check In</span>
+                            </label>
+                            {{ form.check_in }}
+                            {% if form.check_in.errors %}
+                                <label class="label">
+                                    <span class="label-text-alt text-error">{{ form.check_in.errors }}</span>
+                                </label>
+                            {% endif %}
+                            <label class="label">
+                                <span class="label-text-alt text-gray-500">Optional - Apply to all selected employees</span>
+                            </label>
+                        </div>
+                        
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text font-medium">Check Out</span>
+                            </label>
+                            {{ form.check_out }}
+                            {% if form.check_out.errors %}
+                                <label class="label">
+                                    <span class="label-text-alt text-error">{{ form.check_out.errors }}</span>
+                                </label>
+                            {% endif %}
+                            <label class="label">
+                                <span class="label-text-alt text-gray-500">Optional - Apply to all selected employees</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Form Actions -->
+                <div class="divider"></div>
+                <div class="flex justify-end gap-4">
+                    <a href="{% url 'attendance:list' %}" class="btn btn-ghost">Cancel</a>
+                    <button type="submit" class="btn btn-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                        </svg>
+                        Submit Bulk Attendance
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

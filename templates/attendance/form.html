@@ -1,0 +1,148 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ title }} - HRMS{% endblock %}
+
+{% block page_header %}
+<div class="mb-6">
+    <h1 class="text-3xl font-bold text-gray-900 flex items-center gap-3 mb-2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        {{ title }}
+    </h1>
+    <div class="breadcrumbs text-sm">
+        <ul>
+            <li><a href="{% url 'accounts:dashboard' %}" class="text-gray-500 hover:text-gray-700">Dashboard</a></li>
+            <li><a href="{% url 'attendance:list' %}" class="text-gray-500 hover:text-gray-700">Attendance</a></li>
+            <li class="text-gray-400">{% if attendance %}Update{% else %}Create{% endif %} Record</li>
+        </ul>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <div class="card shadow-xl">
+        <div class="card-body">
+            <form method="post" class="space-y-6">
+                {% csrf_token %}
+                
+                <!-- Basic Information -->
+                <div class="space-y-4">
+                    <h2 class="text-xl font-semibold text-gray-800 mb-4">Basic Information</h2>
+                    
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text font-medium">Employee <span class="text-error">*</span></span>
+                        </label>
+                        {{ form.user }}
+                        {% if form.user.errors %}
+                            <label class="label">
+                                <span class="label-text-alt text-error">{{ form.user.errors }}</span>
+                            </label>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text font-medium">Date <span class="text-error">*</span></span>
+                            </label>
+                            {{ form.date }}
+                            {% if form.date.errors %}
+                                <label class="label">
+                                    <span class="label-text-alt text-error">{{ form.date.errors }}</span>
+                                </label>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text font-medium">Status <span class="text-error">*</span></span>
+                            </label>
+                            {{ form.status }}
+                            {% if form.status.errors %}
+                                <label class="label">
+                                    <span class="label-text-alt text-error">{{ form.status.errors }}</span>
+                                </label>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Time Tracking -->
+                <div class="divider"></div>
+                <div class="space-y-4">
+                    <h2 class="text-xl font-semibold text-gray-800 mb-4">Time Tracking</h2>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text font-medium">Check In</span>
+                            </label>
+                            {{ form.check_in }}
+                            {% if form.check_in.errors %}
+                                <label class="label">
+                                    <span class="label-text-alt text-error">{{ form.check_in.errors }}</span>
+                                </label>
+                            {% endif %}
+                            <label class="label">
+                                <span class="label-text-alt text-gray-500">Optional - Time when employee checked in</span>
+                            </label>
+                        </div>
+                        
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text font-medium">Check Out</span>
+                            </label>
+                            {{ form.check_out }}
+                            {% if form.check_out.errors %}
+                                <label class="label">
+                                    <span class="label-text-alt text-error">{{ form.check_out.errors }}</span>
+                                </label>
+                            {% endif %}
+                            <label class="label">
+                                <span class="label-text-alt text-gray-500">Optional - Time when employee checked out</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Additional Information -->
+                <div class="divider"></div>
+                <div class="space-y-4">
+                    <h2 class="text-xl font-semibold text-gray-800 mb-4">Additional Information</h2>
+                    
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text font-medium">Notes</span>
+                        </label>
+                        {{ form.notes }}
+                        {% if form.notes.errors %}
+                            <label class="label">
+                                <span class="label-text-alt text-error">{{ form.notes.errors }}</span>
+                            </label>
+                        {% endif %}
+                        <label class="label">
+                            <span class="label-text-alt text-gray-500">Optional notes about this attendance record</span>
+                        </label>
+                    </div>
+                </div>
+                
+                <!-- Form Actions -->
+                <div class="divider"></div>
+                <div class="flex justify-end gap-4">
+                    <a href="{% url 'attendance:list' %}" class="btn btn-ghost">Cancel</a>
+                    <button type="submit" class="btn btn-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                        </svg>
+                        {% if attendance %}Update{% else %}Create{% endif %} Record
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

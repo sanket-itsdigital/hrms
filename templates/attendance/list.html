@@ -1,0 +1,355 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Attendance - HRMS{% endblock %}
+
+{% block page_header %}
+<div class="mb-6">
+    <div class="flex justify-between items-center mb-4">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-900 flex items-center gap-3 mb-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Attendance Records
+            </h1>
+            <div class="breadcrumbs text-sm">
+                <ul>
+                    <li><a href="{% url 'accounts:dashboard' %}" class="text-gray-500 hover:text-gray-700">Dashboard</a></li>
+                    <li class="text-gray-400">Attendance</li>
+                </ul>
+            </div>
+        </div>
+        {% if can_edit %}
+        <div class="flex gap-2">
+            <a href="{% url 'attendance:bulk' %}" class="btn btn-outline btn-primary">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                </svg>
+                Bulk Entry
+            </a>
+            <a href="{% url 'attendance:create' %}" class="btn btn-primary">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                </svg>
+                New Record
+            </a>
+        </div>
+        {% endif %}
+    </div>
+    
+    <!-- Statistics Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
+        <div class="stat stat-card gradient-primary text-white rounded-xl">
+            <div class="stat-title text-white/90 font-semibold">Total Records</div>
+            <div class="stat-value text-3xl font-bold text-white">{{ total_records }}</div>
+        </div>
+        
+        <div class="stat stat-card gradient-success text-white rounded-xl">
+            <div class="stat-title text-white/90 font-semibold">Present</div>
+            <div class="stat-value text-3xl font-bold text-white">{{ present_count }}</div>
+        </div>
+        
+        <div class="stat stat-card gradient-error text-white rounded-xl">
+            <div class="stat-title text-white/90 font-semibold">Absent</div>
+            <div class="stat-value text-3xl font-bold text-white">{{ absent_count }}</div>
+        </div>
+        
+        <div class="stat stat-card gradient-warning text-white rounded-xl">
+            <div class="stat-title text-white/90 font-semibold">On Leave</div>
+            <div class="stat-value text-3xl font-bold text-white">{{ leave_count }}</div>
+        </div>
+        
+        <div class="stat stat-card gradient-info text-white rounded-xl">
+            <div class="stat-title text-white/90 font-semibold">Late</div>
+            <div class="stat-value text-3xl font-bold text-white">{{ late_count }}</div>
+        </div>
+        
+        <div class="stat stat-card bg-gradient-to-br from-teal-500 to-cyan-600 text-white rounded-xl">
+            <div class="stat-title text-white/90 font-semibold">Work From Home</div>
+            <div class="stat-value text-3xl font-bold text-white">{{ wfh_count }}</div>
+        </div>
+    </div>
+    
+    <!-- Filters -->
+    <div class="card mb-6">
+        <div class="card-body p-4">
+            <form method="get" class="flex flex-wrap gap-4 items-end">
+                <div class="form-control flex-1 min-w-[200px]">
+                    <label class="label">
+                        <span class="label-text text-sm font-medium">Search</span>
+                    </label>
+                    <input type="text" name="search" value="{{ search_query }}" placeholder="Search by name, email, or notes..." class="input input-bordered w-full" />
+                </div>
+                
+                <div class="form-control min-w-[150px]">
+                    <label class="label">
+                        <span class="label-text text-sm font-medium">Status</span>
+                    </label>
+                    <select name="status" class="select select-bordered w-full">
+                        <option value="">All Status</option>
+                        <option value="PRESENT" {% if status_filter == 'PRESENT' %}selected{% endif %}>Present</option>
+                        <option value="ABSENT" {% if status_filter == 'ABSENT' %}selected{% endif %}>Absent</option>
+                        <option value="LEAVE" {% if status_filter == 'LEAVE' %}selected{% endif %}>On Leave</option>
+                        <option value="LATE" {% if status_filter == 'LATE' %}selected{% endif %}>Late</option>
+                        <option value="HALF_DAY" {% if status_filter == 'HALF_DAY' %}selected{% endif %}>Half Day</option>
+                        <option value="WORK_FROM_HOME" {% if status_filter == 'WORK_FROM_HOME' %}selected{% endif %}>Work From Home</option>
+                    </select>
+                </div>
+                
+                {% if users %}
+                <div class="form-control min-w-[180px]">
+                    <label class="label">
+                        <span class="label-text text-sm font-medium">Employee</span>
+                    </label>
+                    <select name="user" class="select select-bordered w-full">
+                        <option value="">All Employees</option>
+                        {% for u in users %}
+                        <option value="{{ u.id }}" {% if user_filter == u.id|stringformat:"s" %}selected{% endif %}>
+                            {{ u.get_full_name|default:u.email }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                {% endif %}
+                
+                <div class="form-control min-w-[150px]">
+                    <label class="label">
+                        <span class="label-text text-sm font-medium">From Date</span>
+                    </label>
+                    <input type="date" name="date_from" value="{{ date_from }}" class="input input-bordered w-full" />
+                </div>
+                
+                <div class="form-control min-w-[150px]">
+                    <label class="label">
+                        <span class="label-text text-sm font-medium">To Date</span>
+                    </label>
+                    <input type="date" name="date_to" value="{{ date_to }}" class="input input-bordered w-full" />
+                </div>
+                
+                <div class="form-control">
+                    <button type="submit" class="btn btn-primary">Filter</button>
+                </div>
+                
+                {% if search_query or status_filter or user_filter or date_from or date_to %}
+                <div class="form-control">
+                    <a href="{% url 'attendance:list' %}" class="btn btn-ghost">Clear</a>
+                </div>
+                {% endif %}
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Attendance Table -->
+    {% if attendances %}
+    <div class="card">
+        <div class="card-body p-0">
+            <div class="overflow-x-auto">
+                <table class="table table-zebra w-full">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Employee</th>
+                            <th>Status</th>
+                            <th>Check In</th>
+                            <th>Check Out</th>
+                            <th>Notes</th>
+                            <th>Marked By</th>
+                            {% if can_edit %}
+                            <th>Actions</th>
+                            {% endif %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for attendance in attendances %}
+                        <tr>
+                            <td>
+                                <div class="font-semibold">{{ attendance.date|date:"M d, Y" }}</div>
+                                <div class="text-xs text-gray-500">{{ attendance.date|date:"l" }}</div>
+                            </td>
+                            <td>
+                                <div class="font-medium">{{ attendance.user.get_full_name|default:attendance.user.email }}</div>
+                                <div class="text-xs text-gray-500">{{ attendance.user.email }}</div>
+                            </td>
+                            <td>
+                                {% if attendance.status == 'PRESENT' %}
+                                    <span class="badge badge-success">{{ attendance.get_status_display }}</span>
+                                {% elif attendance.status == 'ABSENT' %}
+                                    <span class="badge badge-error">{{ attendance.get_status_display }}</span>
+                                {% elif attendance.status == 'LEAVE' %}
+                                    <span class="badge badge-warning">{{ attendance.get_status_display }}</span>
+                                {% elif attendance.status == 'LATE' %}
+                                    <span class="badge badge-info">{{ attendance.get_status_display }}</span>
+                                {% elif attendance.status == 'HALF_DAY' %}
+                                    <span class="badge badge-warning">{{ attendance.get_status_display }}</span>
+                                {% elif attendance.status == 'WORK_FROM_HOME' %}
+                                    <span class="badge" style="background-color: #14b8a6; color: white;">{{ attendance.get_status_display }}</span>
+                                {% else %}
+                                    <span class="badge badge-neutral">{{ attendance.get_status_display }}</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if attendance.check_in %}
+                                    <span class="font-mono">{{ attendance.check_in|time:"H:i" }}</span>
+                                {% else %}
+                                    <span class="text-gray-400">-</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if attendance.check_out %}
+                                    <span class="font-mono">{{ attendance.check_out|time:"H:i" }}</span>
+                                {% else %}
+                                    <span class="text-gray-400">-</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if attendance.notes %}
+                                    <div class="max-w-xs truncate" title="{{ attendance.notes }}">
+                                        {{ attendance.notes }}
+                                    </div>
+                                {% else %}
+                                    <span class="text-gray-400">-</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if attendance.marked_by %}
+                                    <div class="text-sm">{{ attendance.marked_by.get_full_name|default:attendance.marked_by.email }}</div>
+                                {% else %}
+                                    <span class="text-gray-400">-</span>
+                                {% endif %}
+                            </td>
+                            {% if can_edit %}
+                            <td>
+                                <div class="flex gap-2">
+                                    <a href="{% url 'attendance:update' attendance.id %}" class="btn btn-sm btn-outline btn-primary" title="Edit">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                        </svg>
+                                    </a>
+                                    <a href="{% url 'attendance:delete' attendance.id %}" class="btn btn-sm btn-outline btn-error" title="Delete">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                        </svg>
+                                    </a>
+                                </div>
+                            </td>
+                            {% endif %}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Pagination -->
+    {% if attendances.has_other_pages %}
+    <div class="flex justify-center mt-6">
+        <div class="join">
+            {% if attendances.has_previous %}
+                <a href="?page={{ attendances.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if user_filter %}&user={{ user_filter }}{% endif %}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}" class="join-item btn">«</a>
+            {% endif %}
+            
+            <span class="join-item btn btn-active">{{ attendances.number }} of {{ attendances.paginator.num_pages }}</span>
+            
+            {% if attendances.has_next %}
+                <a href="?page={{ attendances.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if user_filter %}&user={{ user_filter }}{% endif %}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}" class="join-item btn">»</a>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+    
+    {% else %}
+    <div class="card">
+        <div class="card-body text-center py-12">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-24 w-24 mx-auto mb-6 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <h3 class="text-2xl font-bold mb-4 text-gray-700">No Attendance Records Found</h3>
+            <p class="text-gray-500 mb-6">
+                {% if search_query or status_filter or user_filter or date_from or date_to %}
+                    No attendance records match your filters. Try adjusting your search criteria.
+                {% else %}
+                    No attendance records have been created yet.
+                {% endif %}
+            </p>
+            {% if can_edit %}
+            <a href="{% url 'attendance:create' %}" class="btn btn-primary">Create First Record</a>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Attendance Status Legend -->
+    <div class="card mt-6">
+        <div class="card-body">
+            <h3 class="text-lg font-semibold mb-4 text-gray-800">Attendance Status Legend</h3>
+            <div class="flex flex-wrap gap-3">
+                <!-- Present -->
+                <a href="?status=PRESENT{% if search_query %}&search={{ search_query }}{% endif %}{% if user_filter %}&user={{ user_filter }}{% endif %}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}" 
+                   class="inline-flex items-center px-4 py-2 rounded-md text-sm font-medium text-white shadow-sm transition-all duration-200 hover:opacity-90 hover:shadow-md"
+                   style="background-color: #10b981; min-width: 130px;">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Present
+                </a>
+                
+                <!-- Absent -->
+                <a href="?status=ABSENT{% if search_query %}&search={{ search_query }}{% endif %}{% if user_filter %}&user={{ user_filter }}{% endif %}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}" 
+                   class="inline-flex items-center px-4 py-2 rounded-md text-sm font-medium text-white shadow-sm transition-all duration-200 hover:opacity-90 hover:shadow-md"
+                   style="background-color: #ef4444; min-width: 130px;">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Absent
+                </a>
+                
+                <!-- On Leave -->
+                <a href="?status=LEAVE{% if search_query %}&search={{ search_query }}{% endif %}{% if user_filter %}&user={{ user_filter }}{% endif %}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}" 
+                   class="inline-flex items-center px-4 py-2 rounded-md text-sm font-medium text-white shadow-sm transition-all duration-200 hover:opacity-90 hover:shadow-md"
+                   style="background-color: #f59e0b; min-width: 130px;">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    On Leave
+                </a>
+                
+                <!-- Late -->
+                <a href="?status=LATE{% if search_query %}&search={{ search_query }}{% endif %}{% if user_filter %}&user={{ user_filter }}{% endif %}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}" 
+                   class="inline-flex items-center px-4 py-2 rounded-md text-sm font-medium text-white shadow-sm transition-all duration-200 hover:opacity-90 hover:shadow-md"
+                   style="background-color: #3b82f6; min-width: 130px;">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Late
+                </a>
+                
+                <!-- Half Day -->
+                <a href="?status=HALF_DAY{% if search_query %}&search={{ search_query }}{% endif %}{% if user_filter %}&user={{ user_filter }}{% endif %}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}" 
+                   class="inline-flex items-center px-4 py-2 rounded-md text-sm font-medium text-white shadow-sm transition-all duration-200 hover:opacity-90 hover:shadow-md"
+                   style="background-color: #f97316; min-width: 130px;">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Half Day
+                </a>
+                
+                <!-- Work From Home -->
+                <a href="?status=WORK_FROM_HOME{% if search_query %}&search={{ search_query }}{% endif %}{% if user_filter %}&user={{ user_filter }}{% endif %}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}" 
+                   class="inline-flex items-center px-4 py-2 rounded-md text-sm font-medium text-white shadow-sm transition-all duration-200 hover:opacity-90 hover:shadow-md"
+                   style="background-color: #14b8a6; min-width: 130px;">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                    </svg>
+                    Work From Home
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

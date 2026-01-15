@@ -1,0 +1,239 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ title }} - HRMS{% endblock %}
+
+{% block page_header %}
+<div class="mb-6">
+    <h1 class="text-3xl font-bold text-gray-900 flex items-center gap-3 mb-2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+        </svg>
+        {{ title }}
+    </h1>
+    <div class="breadcrumbs text-sm">
+        <ul>
+            <li><a href="{% url 'accounts:dashboard' %}" class="text-gray-500 hover:text-gray-700">Dashboard</a></li>
+            <li><a href="{% url 'projects:list' %}" class="text-gray-500 hover:text-gray-700">Projects</a></li>
+            <li class="text-gray-400">{{ action }} Project</li>
+        </ul>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <div class="card shadow-xl">
+        <div class="card-body">
+            <form method="post" class="space-y-6">
+                {% csrf_token %}
+                
+                <!-- Basic Information -->
+                <div class="space-y-4">
+                    <h2 class="text-xl font-semibold text-gray-800 mb-4">Basic Information</h2>
+                    
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text font-medium">Organization <span class="text-error">*</span></span>
+                        </label>
+                        {{ form.organization }}
+                        {% if form.organization.errors %}
+                            <label class="label">
+                                <span class="label-text-alt text-error">{{ form.organization.errors }}</span>
+                            </label>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text font-medium">Project Name <span class="text-error">*</span></span>
+                        </label>
+                        {{ form.name }}
+                        {% if form.name.errors %}
+                            <label class="label">
+                                <span class="label-text-alt text-error">{{ form.name.errors }}</span>
+                            </label>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text font-medium">Description</span>
+                        </label>
+                        {{ form.description }}
+                        {% if form.description.errors %}
+                            <label class="label">
+                                <span class="label-text-alt text-error">{{ form.description.errors }}</span>
+                            </label>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text font-medium">Requirements</span>
+                        </label>
+                        {{ form.requirements }}
+                        {% if form.requirements.errors %}
+                            <label class="label">
+                                <span class="label-text-alt text-error">{{ form.requirements.errors }}</span>
+                            </label>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <!-- Project Details -->
+                <div class="divider"></div>
+                <div class="space-y-4">
+                    <h2 class="text-xl font-semibold text-gray-800 mb-4">Project Details</h2>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text font-medium">Status</span>
+                            </label>
+                            {{ form.status }}
+                            {% if form.status.errors %}
+                                <label class="label">
+                                    <span class="label-text-alt text-error">{{ form.status.errors }}</span>
+                                </label>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text font-medium">Priority</span>
+                            </label>
+                            {{ form.priority }}
+                            {% if form.priority.errors %}
+                                <label class="label">
+                                    <span class="label-text-alt text-error">{{ form.priority.errors }}</span>
+                                </label>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text font-medium">Deadline</span>
+                            </label>
+                            {{ form.deadline }}
+                            {% if form.deadline.errors %}
+                                <label class="label">
+                                    <span class="label-text-alt text-error">{{ form.deadline.errors }}</span>
+                                </label>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text font-medium">Budget</span>
+                            </label>
+                            {{ form.budget }}
+                            {% if form.budget.errors %}
+                                <label class="label">
+                                    <span class="label-text-alt text-error">{{ form.budget.errors }}</span>
+                                </label>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text font-medium">Project Manager</span>
+                        </label>
+                        {{ form.project_manager }}
+                        {% if form.project_manager.errors %}
+                            <label class="label">
+                                <span class="label-text-alt text-error">{{ form.project_manager.errors }}</span>
+                            </label>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text font-medium">Payment Details</span>
+                        </label>
+                        {{ form.payment_details }}
+                        {% if form.payment_details.errors %}
+                            <label class="label">
+                                <span class="label-text-alt text-error">{{ form.payment_details.errors }}</span>
+                            </label>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <!-- Client Information -->
+                <div class="divider"></div>
+                <div class="space-y-4">
+                    <h2 class="text-xl font-semibold text-gray-800 mb-4">Client Information</h2>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text font-medium">Client Name</span>
+                            </label>
+                            {{ form.client_name }}
+                            {% if form.client_name.errors %}
+                                <label class="label">
+                                    <span class="label-text-alt text-error">{{ form.client_name.errors }}</span>
+                                </label>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text font-medium">Client Company</span>
+                            </label>
+                            {{ form.client_company }}
+                            {% if form.client_company.errors %}
+                                <label class="label">
+                                    <span class="label-text-alt text-error">{{ form.client_company.errors }}</span>
+                                </label>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text font-medium">Client Email</span>
+                            </label>
+                            {{ form.client_email }}
+                            {% if form.client_email.errors %}
+                                <label class="label">
+                                    <span class="label-text-alt text-error">{{ form.client_email.errors }}</span>
+                                </label>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text font-medium">Client Phone</span>
+                            </label>
+                            {{ form.client_phone }}
+                            {% if form.client_phone.errors %}
+                                <label class="label">
+                                    <span class="label-text-alt text-error">{{ form.client_phone.errors }}</span>
+                                </label>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Form Actions -->
+                <div class="divider"></div>
+                <div class="flex justify-end gap-4">
+                    <a href="{% if project %}{% url 'projects:detail' project.id %}{% else %}{% url 'projects:list' %}{% endif %}" class="btn btn-ghost">Cancel</a>
+                    <button type="submit" class="btn btn-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                        </svg>
+                        {{ action }} Project
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

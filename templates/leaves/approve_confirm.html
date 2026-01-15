@@ -1,0 +1,122 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Approve Leave - HRMS{% endblock %}
+
+{% block page_header %}
+<div class="mb-6">
+    <h1 class="text-3xl font-bold text-gray-900 flex items-center gap-3 mb-2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        Approve Leave Request
+    </h1>
+    <div class="breadcrumbs text-sm">
+        <ul>
+            <li><a href="{% url 'accounts:dashboard' %}" class="text-gray-500 hover:text-gray-700">Dashboard</a></li>
+            <li><a href="{% url 'leaves:list' %}" class="text-gray-500 hover:text-gray-700">Leaves</a></li>
+            <li class="text-gray-400">Approve</li>
+        </ul>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto">
+    <div class="card shadow-xl">
+        <div class="card-body">
+            <div class="alert alert-info mb-6">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current shrink-0 w-6 h-6">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <span>Are you sure you want to approve this leave request? This action will deduct the leave days from the employee's leave balance.</span>
+            </div>
+            
+            <!-- Leave Details -->
+            <div class="space-y-4 mb-6">
+                <h2 class="text-xl font-semibold text-gray-800 mb-4">Leave Request Details</h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="label">
+                            <span class="label-text font-medium">Employee</span>
+                        </label>
+                        <div class="text-lg font-semibold">{{ leave.user.get_full_name|default:leave.user.email }}</div>
+                    </div>
+                    
+                    <div>
+                        <label class="label">
+                            <span class="label-text font-medium">Leave Type</span>
+                        </label>
+                        <span class="badge badge-info text-lg">{{ leave.get_leave_type_display }}</span>
+                    </div>
+                    
+                    <div>
+                        <label class="label">
+                            <span class="label-text font-medium">From Date</span>
+                        </label>
+                        <div class="text-lg">{{ leave.date_from|date:"M d, Y" }}</div>
+                    </div>
+                    
+                    <div>
+                        <label class="label">
+                            <span class="label-text font-medium">To Date</span>
+                        </label>
+                        <div class="text-lg">{{ leave.date_to|date:"M d, Y" }}</div>
+                    </div>
+                    
+                    <div>
+                        <label class="label">
+                            <span class="label-text font-medium">Number of Days</span>
+                        </label>
+                        <div class="text-lg font-bold">{{ leave.days }} day{{ leave.days|pluralize }}</div>
+                    </div>
+                    
+                    <div>
+                        <label class="label">
+                            <span class="label-text font-medium">Applied At</span>
+                        </label>
+                        <div class="text-sm">{{ leave.applied_at|date:"M d, Y h:i A" }}</div>
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="label">
+                        <span class="label-text font-medium">Reason</span>
+                    </label>
+                    <div class="p-4 bg-gray-50 rounded-lg">{{ leave.reason }}</div>
+                </div>
+                
+                {% if leave.attachment %}
+                <div>
+                    <label class="label">
+                        <span class="label-text font-medium">Attachment</span>
+                    </label>
+                    <a href="{{ leave.attachment.url }}" target="_blank" class="btn btn-sm btn-outline">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        </svg>
+                        View Attachment
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+            
+            <!-- Approval Form -->
+            <form method="post" class="space-y-4">
+                {% csrf_token %}
+                <div class="flex justify-end gap-4">
+                    <a href="{% url 'leaves:list' %}" class="btn btn-ghost">Cancel</a>
+                    <button type="submit" class="btn btn-success">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                        </svg>
+                        Approve Leave
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

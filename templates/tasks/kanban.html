@@ -1,0 +1,601 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Kanban Board - HRMS{% endblock %}
+
+{% block page_header %}
+<div class="mb-6">
+    <div class="flex justify-between items-center mb-4">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-900 flex items-center gap-3 mb-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2" />
+                </svg>
+                Kanban Board
+            </h1>
+            <div class="breadcrumbs text-sm">
+                <ul>
+                    <li><a href="{% url 'accounts:dashboard' %}" class="text-gray-500 hover:text-gray-700">Dashboard</a></li>
+                    <li><a href="{% url 'tasks:list' %}" class="text-gray-500 hover:text-gray-700">Tasks</a></li>
+                    <li class="text-gray-400">Kanban Board</li>
+                </ul>
+            </div>
+        </div>
+        <div class="flex gap-2">
+            <select id="project-filter" class="select select-bordered">
+                <option value="">All Projects</option>
+                {% for proj in projects %}
+                <option value="{{ proj.id }}" {% if project and project.id == proj.id %}selected{% endif %}>{{ proj.name }}</option>
+                {% endfor %}
+            </select>
+            {% if user.is_ceo or user.is_pm %}
+            <a href="{% url 'tasks:create' %}" class="btn btn-primary">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                </svg>
+                New Task
+            </a>
+            {% endif %}
+        </div>
+    </div>
+    
+    {% if project %}
+    <div class="alert alert-info mb-6">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current shrink-0 w-6 h-6">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+        <span>Viewing tasks for project: <strong>{{ project.name }}</strong></span>
+        <a href="{% url 'tasks:kanban' %}" class="link link-hover ml-2">View All Projects</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="kanban-board">
+    <!-- To Do Column -->
+    <div class="kanban-column">
+        <div class="kanban-column-header">
+            <h3 class="font-semibold text-gray-800">To Do</h3>
+            <span class="badge badge-neutral">{{ status_groups.TO_DO|length }}</span>
+        </div>
+        <div class="kanban-items" data-status="TO_DO">
+            {% for task in status_groups.TO_DO %}
+            <div class="kanban-item" data-task-id="{{ task.id }}">
+                <div class="flex justify-between items-start mb-2">
+                    <h4 class="font-semibold text-sm">
+                        <a href="{% url 'tasks:detail' task.id %}" class="hover:text-primary">{{ task.title }}</a>
+                    </h4>
+                    {% if task.priority == 'URGENT' %}
+                        <span class="badge badge-error badge-xs">Urgent</span>
+                    {% elif task.priority == 'HIGH' %}
+                        <span class="badge badge-warning badge-xs">High</span>
+                    {% endif %}
+                </div>
+                <p class="text-xs text-gray-600 mb-2">{{ task.project.name }}</p>
+                {% if task.assigned_to %}
+                <div class="flex items-center gap-1 text-xs text-gray-500">
+                    <div class="avatar placeholder">
+                        <div class="bg-blue-600 text-white rounded-full w-6">
+                            <span class="text-xs">{% if task.assigned_to.get_full_name %}{{ task.assigned_to.get_full_name|first|upper }}{% else %}{{ task.assigned_to.username|first|upper }}{% endif %}</span>
+                        </div>
+                    </div>
+                    <span>{% if task.assigned_to.get_full_name %}{{ task.assigned_to.get_full_name }}{% else %}{{ task.assigned_to.username }}{% endif %}</span>
+                </div>
+                {% endif %}
+                {% if task.deadline %}
+                <div class="text-xs text-gray-500 mt-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    {{ task.deadline|date:"M d" }}
+                    {% if task.is_overdue %}
+                    <span class="badge badge-error badge-xs ml-1">Overdue</span>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+            {% empty %}
+            <div class="text-center text-gray-400 text-sm py-8">No tasks</div>
+            {% endfor %}
+        </div>
+    </div>
+    
+    <!-- In Progress Column -->
+    <div class="kanban-column">
+        <div class="kanban-column-header">
+            <h3 class="font-semibold text-gray-800">In Progress</h3>
+            <span class="badge badge-primary">{{ status_groups.IN_PROGRESS|length }}</span>
+        </div>
+        <div class="kanban-items" data-status="IN_PROGRESS">
+            {% for task in status_groups.IN_PROGRESS %}
+            <div class="kanban-item" data-task-id="{{ task.id }}">
+                <div class="flex justify-between items-start mb-2">
+                    <h4 class="font-semibold text-sm">
+                        <a href="{% url 'tasks:detail' task.id %}" class="hover:text-primary">{{ task.title }}</a>
+                    </h4>
+                    {% if task.priority == 'URGENT' %}
+                        <span class="badge badge-error badge-xs">Urgent</span>
+                    {% elif task.priority == 'HIGH' %}
+                        <span class="badge badge-warning badge-xs">High</span>
+                    {% endif %}
+                </div>
+                <p class="text-xs text-gray-600 mb-2">{{ task.project.name }}</p>
+                {% if task.assigned_to %}
+                <div class="flex items-center gap-1 text-xs text-gray-500">
+                    <div class="avatar placeholder">
+                        <div class="bg-blue-600 text-white rounded-full w-6">
+                            <span class="text-xs">{% if task.assigned_to.get_full_name %}{{ task.assigned_to.get_full_name|first|upper }}{% else %}{{ task.assigned_to.username|first|upper }}{% endif %}</span>
+                        </div>
+                    </div>
+                    <span>{% if task.assigned_to.get_full_name %}{{ task.assigned_to.get_full_name }}{% else %}{{ task.assigned_to.username }}{% endif %}</span>
+                </div>
+                {% endif %}
+                {% if task.deadline %}
+                <div class="text-xs text-gray-500 mt-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    {{ task.deadline|date:"M d" }}
+                    {% if task.is_overdue %}
+                    <span class="badge badge-error badge-xs ml-1">Overdue</span>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+            {% empty %}
+            <div class="text-center text-gray-400 text-sm py-8">No tasks</div>
+            {% endfor %}
+        </div>
+    </div>
+    
+    <!-- Completed Column -->
+    <div class="kanban-column">
+        <div class="kanban-column-header">
+            <h3 class="font-semibold text-gray-800">Completed</h3>
+            <span class="badge badge-success">{{ status_groups.COMPLETED|length }}</span>
+        </div>
+        <div class="kanban-items" data-status="COMPLETED">
+            {% for task in status_groups.COMPLETED %}
+            <div class="kanban-item" data-task-id="{{ task.id }}">
+                <div class="flex justify-between items-start mb-2">
+                    <h4 class="font-semibold text-sm line-through text-gray-500">
+                        <a href="{% url 'tasks:detail' task.id %}" class="hover:text-primary">{{ task.title }}</a>
+                    </h4>
+                </div>
+                <p class="text-xs text-gray-600 mb-2">{{ task.project.name }}</p>
+                {% if task.assigned_to %}
+                <div class="flex items-center gap-1 text-xs text-gray-500">
+                    <div class="avatar placeholder">
+                        <div class="bg-blue-600 text-white rounded-full w-6">
+                            <span class="text-xs">{% if task.assigned_to.get_full_name %}{{ task.assigned_to.get_full_name|first|upper }}{% else %}{{ task.assigned_to.username|first|upper }}{% endif %}</span>
+                        </div>
+                    </div>
+                    <span>{% if task.assigned_to.get_full_name %}{{ task.assigned_to.get_full_name }}{% else %}{{ task.assigned_to.username }}{% endif %}</span>
+                </div>
+                {% endif %}
+                {% if task.completed_at %}
+                <div class="text-xs text-gray-500 mt-2">
+                    Completed: {{ task.completed_at|date:"M d" }}
+                </div>
+                {% endif %}
+            </div>
+            {% empty %}
+            <div class="text-center text-gray-400 text-sm py-8">No tasks</div>
+            {% endfor %}
+        </div>
+    </div>
+    
+    <!-- Blocked Column -->
+    <div class="kanban-column">
+        <div class="kanban-column-header">
+            <h3 class="font-semibold text-gray-800">Blocked</h3>
+            <span class="badge badge-error">{{ status_groups.BLOCKED|length }}</span>
+        </div>
+        <div class="kanban-items" data-status="BLOCKED">
+            {% for task in status_groups.BLOCKED %}
+            <div class="kanban-item" data-task-id="{{ task.id }}">
+                <div class="flex justify-between items-start mb-2">
+                    <h4 class="font-semibold text-sm">
+                        <a href="{% url 'tasks:detail' task.id %}" class="hover:text-primary">{{ task.title }}</a>
+                    </h4>
+                    {% if task.priority == 'URGENT' %}
+                        <span class="badge badge-error badge-xs">Urgent</span>
+                    {% elif task.priority == 'HIGH' %}
+                        <span class="badge badge-warning badge-xs">High</span>
+                    {% endif %}
+                </div>
+                <p class="text-xs text-gray-600 mb-2">{{ task.project.name }}</p>
+                {% if task.assigned_to %}
+                <div class="flex items-center gap-1 text-xs text-gray-500">
+                    <div class="avatar placeholder">
+                        <div class="bg-blue-600 text-white rounded-full w-6">
+                            <span class="text-xs">{% if task.assigned_to.get_full_name %}{{ task.assigned_to.get_full_name|first|upper }}{% else %}{{ task.assigned_to.username|first|upper }}{% endif %}</span>
+                        </div>
+                    </div>
+                    <span>{% if task.assigned_to.get_full_name %}{{ task.assigned_to.get_full_name }}{% else %}{{ task.assigned_to.username }}{% endif %}</span>
+                </div>
+                {% endif %}
+                {% if task.deadline %}
+                <div class="text-xs text-gray-500 mt-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    {{ task.deadline|date:"M d" }}
+                    {% if task.is_overdue %}
+                    <span class="badge badge-error badge-xs ml-1">Overdue</span>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+            {% empty %}
+            <div class="text-center text-gray-400 text-sm py-8">No tasks</div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<style>
+/* Drag and drop styles */
+.kanban-item {
+    cursor: move;
+    user-select: none;
+}
+
+.kanban-item-dragging {
+    opacity: 0.5;
+    transform: rotate(2deg);
+}
+
+.kanban-item-ghost {
+    opacity: 0.3;
+    background: #e5e7eb;
+    border: 2px dashed #9ca3af;
+}
+
+.kanban-item-chosen {
+    cursor: grabbing;
+}
+
+.kanban-column.drag-over {
+    background-color: #f3f4f6;
+    border: 2px dashed #8b5cf6;
+    border-radius: 8px;
+}
+
+.kanban-items {
+    min-height: 100px;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+console.log('🔍 Kanban script loading...');
+console.log('Document ready state:', document.readyState);
+console.log('SortableJS check:', typeof Sortable, typeof window.Sortable);
+
+// Test if we can access SortableJS immediately
+if (typeof Sortable !== 'undefined') {
+    console.log('✅ SortableJS is already loaded!');
+} else {
+    console.log('⏳ SortableJS not yet loaded, will wait...');
+}
+
+// Helper functions first
+// Function to get CSRF token from cookies
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+// Function to show notification
+function showNotification(message, type) {
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.className = `alert alert-${type === 'success' ? 'success' : 'error'} fixed top-4 right-4 z-50 shadow-lg max-w-md`;
+    notification.innerHTML = `
+        <span>${message}</span>
+        <button class="btn btn-sm btn-ghost" onclick="this.parentElement.remove()">✕</button>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    // Auto remove after 3 seconds
+    setTimeout(() => {
+        if (notification.parentElement) {
+            notification.remove();
+        }
+    }, 3000);
+}
+
+// Project filter
+const projectFilter = document.getElementById('project-filter');
+if (projectFilter) {
+    projectFilter.addEventListener('change', function() {
+        const projectId = this.value;
+        if (projectId) {
+            window.location.href = '{% url "tasks:kanban" %}' + projectId + '/';
+        } else {
+            window.location.href = '{% url "tasks:kanban" %}';
+        }
+    });
+}
+
+// Initialize drag and drop using SortableJS
+function initKanbanDragDrop() {
+    // Check if SortableJS is loaded - try multiple ways
+    const SortableClass = typeof Sortable !== 'undefined' ? Sortable : 
+                         (typeof window.Sortable !== 'undefined' ? window.Sortable : null);
+    
+    if (!SortableClass || typeof SortableClass !== 'function') {
+        console.error('❌ SortableJS is not loaded or not a function');
+        console.error('Sortable type:', typeof Sortable, 'window.Sortable type:', typeof window.Sortable);
+        return false;
+    }
+    
+    console.log('🚀 Initializing Kanban drag and drop...');
+    
+    // Get all kanban columns
+    const columns = document.querySelectorAll('.kanban-items');
+    
+    if (columns.length === 0) {
+        console.error('❌ No kanban columns found');
+        return false;
+    }
+    
+    console.log(`📋 Found ${columns.length} kanban columns`);
+    
+    let initialized = 0;
+    columns.forEach(function(column) {
+        const status = column.getAttribute('data-status');
+        
+        try {
+            // Check if already initialized
+            if (column.sortableInstance) {
+                console.log(`🔄 Destroying existing instance for ${status}`);
+                column.sortableInstance.destroy();
+            }
+            
+            console.log(`⚙️ Creating Sortable instance for ${status}...`);
+            column.sortableInstance = new SortableClass(column, {
+                group: 'kanban-tasks', // Allow dragging between columns
+                animation: 150,
+                ghostClass: 'kanban-item-ghost',
+                dragClass: 'kanban-item-dragging',
+                chosenClass: 'kanban-item-chosen',
+                fallbackOnBody: true,
+                swapThreshold: 0.65,
+                forceFallback: false,
+                
+                onStart: function(evt) {
+                    console.log('Drag started for task:', evt.item.getAttribute('data-task-id'));
+                    evt.item.style.opacity = '0.5';
+                },
+                
+                onMove: function(evt) {
+                    // Remove drag-over from all columns first
+                    document.querySelectorAll('.kanban-column').forEach(col => {
+                        col.classList.remove('drag-over');
+                    });
+                    // Highlight the column being dragged over
+                    const relatedColumn = evt.related.closest('.kanban-column');
+                    if (relatedColumn) {
+                        relatedColumn.classList.add('drag-over');
+                    }
+                },
+                
+                onEnd: function(evt) {
+                    console.log('🎯 Drag ended');
+                    // Remove drag-over class from all columns
+                    document.querySelectorAll('.kanban-column').forEach(col => {
+                        col.classList.remove('drag-over');
+                    });
+                    
+                    const taskId = evt.item.getAttribute('data-task-id');
+                    const newStatus = evt.to ? evt.to.getAttribute('data-status') : null;
+                    const oldStatus = evt.from ? evt.from.getAttribute('data-status') : null;
+                    
+                    console.log('📊 Task ID:', taskId, '| Old Status:', oldStatus, '| New Status:', newStatus);
+                    
+                    // Only update if moved to a different column
+                    if (newStatus && newStatus !== oldStatus && taskId) {
+                        console.log('✅ Status changed, updating task...');
+                        updateTaskStatus(taskId, newStatus, evt.item);
+                    } else {
+                        console.log('ℹ️ No status change or invalid move, reverting...');
+                        // If dropped in same column or invalid, revert
+                        evt.item.style.opacity = '';
+                    }
+                },
+                
+                onError: function(evt) {
+                    console.error('Sortable error:', evt);
+                }
+            });
+            initialized++;
+            console.log('Column initialized:', status);
+        } catch (error) {
+            console.error('Error initializing column:', status, error);
+        }
+    });
+    
+    console.log(`Kanban drag and drop initialized: ${initialized}/${columns.length} columns`);
+    return initialized > 0;
+}
+
+// Wait for SortableJS to load - more robust approach
+(function() {
+    let attempts = 0;
+    const maxAttempts = 100; // Try for 10 seconds max
+    let initialized = false;
+    
+    function tryInit() {
+        attempts++;
+        
+        // Check multiple ways SortableJS might be available
+        const SortableAvailable = typeof Sortable !== 'undefined' || 
+                                   typeof window.Sortable !== 'undefined' ||
+                                   (window.Sortable && typeof window.Sortable.create !== 'undefined');
+        
+        if (SortableAvailable && !initialized) {
+            const SortableClass = Sortable || window.Sortable;
+            
+            // Double check it's actually a function
+            if (typeof SortableClass === 'function') {
+                try {
+                    if (initKanbanDragDrop()) {
+                        console.log('✅ Kanban drag and drop initialized successfully!');
+                        initialized = true;
+                        return;
+                    } else {
+                        console.warn('⚠️ initKanbanDragDrop returned false');
+                    }
+                } catch (error) {
+                    console.error('❌ Error during initialization:', error);
+                }
+            } else {
+                console.warn('⚠️ Sortable is not a function:', typeof SortableClass);
+            }
+        }
+        
+        if (!initialized && attempts < maxAttempts) {
+            setTimeout(tryInit, 100);
+        } else if (!initialized) {
+            console.error('❌ SortableJS failed to load after', maxAttempts, 'attempts');
+            console.error('Available globals:', Object.keys(window).filter(k => k.toLowerCase().includes('sort')));
+            if (typeof showNotification === 'function') {
+                showNotification('Drag and drop library failed to load. Please refresh the page.', 'error');
+            }
+        }
+    }
+    
+    // Start trying after a short delay to ensure scripts are loaded
+    setTimeout(function() {
+        if (document.readyState === 'complete' || document.readyState === 'interactive') {
+            tryInit();
+        } else {
+            document.addEventListener('DOMContentLoaded', tryInit);
+            window.addEventListener('load', function() {
+                setTimeout(tryInit, 200);
+            });
+        }
+    }, 500);
+})();
+
+// Function to update task status via AJAX
+function updateTaskStatus(taskId, newStatus, taskElement) {
+    console.log('Updating task status:', taskId, 'to', newStatus);
+    
+    // Show loading state
+    taskElement.style.opacity = '0.5';
+    taskElement.style.pointerEvents = 'none';
+    
+    // Get CSRF token from cookie
+    let csrftoken = getCookie('csrftoken');
+    
+    if (!csrftoken) {
+        console.error('CSRF token not found');
+        taskElement.style.opacity = '';
+        taskElement.style.pointerEvents = '';
+        showNotification('CSRF token not found. Please refresh the page.', 'error');
+        window.location.reload();
+        return;
+    }
+    
+    console.log('Making AJAX request with CSRF token');
+    
+    // Make AJAX request - use the correct URL pattern
+    const updateUrl = `{% url "tasks:update_status" 999 %}`.replace('999', taskId);
+    console.log('📡 Making request to:', updateUrl, 'for task:', taskId);
+    
+    fetch(updateUrl, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrftoken
+        },
+        body: JSON.stringify({
+            status: newStatus
+        }),
+        credentials: 'same-origin'
+    })
+    .then(response => {
+        console.log('Response status:', response.status);
+        if (!response.ok) {
+            return response.json().then(data => {
+                throw new Error(data.error || 'Server error');
+            });
+        }
+        return response.json();
+    })
+    .then(data => {
+        console.log('Response data:', data);
+        if (data.success) {
+            // Update task element appearance based on new status
+            taskElement.style.opacity = '';
+            taskElement.style.pointerEvents = '';
+            
+            // Update badge counts
+            updateBadgeCounts();
+            
+            // Show success message
+            showNotification('Task status updated successfully!', 'success');
+            
+            // If moved to completed, add line-through
+            if (newStatus === 'COMPLETED') {
+                const titleLink = taskElement.querySelector('h4 a');
+                if (titleLink) {
+                    titleLink.parentElement.classList.add('line-through', 'text-gray-500');
+                }
+            } else {
+                const titleLink = taskElement.querySelector('h4 a');
+                if (titleLink) {
+                    titleLink.parentElement.classList.remove('line-through', 'text-gray-500');
+                }
+            }
+        } else {
+            // Revert on error
+            taskElement.style.opacity = '';
+            taskElement.style.pointerEvents = '';
+            showNotification(data.error || 'Failed to update task status', 'error');
+            // Reload page to revert changes
+            window.location.reload();
+        }
+    })
+    .catch(error => {
+        console.error('Error updating task status:', error);
+        taskElement.style.opacity = '';
+        taskElement.style.pointerEvents = '';
+        showNotification(error.message || 'An error occurred while updating task status', 'error');
+        // Reload page to revert changes
+        setTimeout(() => {
+            window.location.reload();
+        }, 2000);
+    });
+}
+
+// Function to update badge counts
+function updateBadgeCounts() {
+    const columns = document.querySelectorAll('.kanban-items');
+    columns.forEach(function(column) {
+        const status = column.getAttribute('data-status');
+        const badge = column.closest('.kanban-column').querySelector('.badge');
+        const count = column.querySelectorAll('.kanban-item:not(.kanban-item-ghost)').length;
+        if (badge) {
+            badge.textContent = count;
+        }
+    });
+}
+</script>
+{% endblock %}

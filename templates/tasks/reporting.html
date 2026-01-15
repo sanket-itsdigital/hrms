@@ -1,0 +1,236 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Task Reporting - HRMS{% endblock %}
+
+{% block page_header %}
+<div class="mb-6">
+    <h1 class="text-3xl font-bold text-gray-900 flex items-center gap-3 mb-2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+        </svg>
+        Task Reporting
+    </h1>
+    <div class="breadcrumbs text-sm">
+        <ul>
+            <li><a href="{% url 'accounts:dashboard' %}" class="text-gray-500 hover:text-gray-700">Dashboard</a></li>
+            <li><a href="{% url 'tasks:list' %}" class="text-gray-500 hover:text-gray-700">Tasks</a></li>
+            <li class="text-gray-400">Reporting</li>
+        </ul>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Overall Statistics -->
+    <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+        <div class="stat stat-card gradient-primary text-white rounded-xl">
+            <div class="stat-title text-white/90 font-semibold">Total Tasks</div>
+            <div class="stat-value text-3xl font-bold text-white">{{ total_tasks }}</div>
+        </div>
+        
+        <div class="stat stat-card gradient-success text-white rounded-xl">
+            <div class="stat-title text-white/90 font-semibold">Completed</div>
+            <div class="stat-value text-3xl font-bold text-white">{{ completed_tasks }}</div>
+            <div class="stat-desc text-white/80 font-medium">{{ completion_rate|floatformat:1 }}% completion rate</div>
+        </div>
+        
+        <div class="stat stat-card gradient-info text-white rounded-xl">
+            <div class="stat-title text-white/90 font-semibold">In Progress</div>
+            <div class="stat-value text-3xl font-bold text-white">{{ in_progress_tasks }}</div>
+        </div>
+        
+        <div class="stat stat-card gradient-error text-white rounded-xl">
+            <div class="stat-title text-white/90 font-semibold">Blocked</div>
+            <div class="stat-value text-3xl font-bold text-white">{{ blocked_tasks }}</div>
+        </div>
+        
+        <div class="stat stat-card gradient-warning text-white rounded-xl">
+            <div class="stat-title text-white/90 font-semibold">Overdue</div>
+            <div class="stat-value text-3xl font-bold text-white">{{ overdue_tasks }}</div>
+        </div>
+    </div>
+    
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Tasks by Priority -->
+        <div class="card shadow-xl">
+            <div class="card-body">
+                <h2 class="card-title text-gray-800 text-lg font-semibold mb-4">Tasks by Priority</h2>
+                <div class="space-y-3">
+                    {% for stat in priority_stats %}
+                    <div>
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="text-sm font-medium text-gray-700">{{ stat.priority|title }}</span>
+                            <span class="text-sm font-bold text-gray-900">{{ stat.count }}</span>
+                        </div>
+                        <progress class="progress progress-primary w-full" value="{{ stat.count }}" max="{{ total_tasks }}"></progress>
+                    </div>
+                    {% empty %}
+                    <p class="text-gray-500 text-center py-4">No data available</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Tasks by Status -->
+        <div class="card shadow-xl">
+            <div class="card-body">
+                <h2 class="card-title text-gray-800 text-lg font-semibold mb-4">Tasks by Status</h2>
+                <div class="space-y-3">
+                    {% for stat in status_stats %}
+                    <div>
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="text-sm font-medium text-gray-700">
+                                {% if stat.status == 'TO_DO' %}To Do
+                                {% elif stat.status == 'IN_PROGRESS' %}In Progress
+                                {% elif stat.status == 'COMPLETED' %}Completed
+                                {% elif stat.status == 'BLOCKED' %}Blocked
+                                {% else %}{{ stat.status }}
+                                {% endif %}
+                            </span>
+                            <span class="text-sm font-bold text-gray-900">{{ stat.count }}</span>
+                        </div>
+                        <progress class="progress progress-primary w-full" value="{{ stat.count }}" max="{{ total_tasks }}"></progress>
+                    </div>
+                    {% empty %}
+                    <p class="text-gray-500 text-center py-4">No data available</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Project Statistics -->
+    {% if project_stats %}
+    <div class="card shadow-xl">
+        <div class="card-body">
+            <h2 class="card-title text-gray-800 text-lg font-semibold mb-4">Tasks by Project</h2>
+            <div class="overflow-x-auto">
+                <table class="table table-zebra">
+                    <thead>
+                        <tr>
+                            <th>Project</th>
+                            <th>Total</th>
+                            <th>Completed</th>
+                            <th>In Progress</th>
+                            <th>Overdue</th>
+                            <th>Completion Rate</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for stat in project_stats %}
+                        <tr>
+                            <td class="font-semibold">{{ stat.project__name }}</td>
+                            <td>{{ stat.total }}</td>
+                            <td>
+                                <span class="badge badge-success">{{ stat.completed }}</span>
+                            </td>
+                            <td>
+                                <span class="badge badge-primary">{{ stat.in_progress }}</span>
+                            </td>
+                            <td>
+                                {% if stat.overdue > 0 %}
+                                <span class="badge badge-error">{{ stat.overdue }}</span>
+                                {% else %}
+                                <span class="text-gray-400">0</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if stat.total > 0 %}
+                                    {% widthratio stat.completed stat.total 100 %}%
+                                {% else %}
+                                    0%
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- User Performance (CEO/PM only) -->
+    {% if user_performance %}
+    <div class="card shadow-xl">
+        <div class="card-body">
+            <h2 class="card-title text-gray-800 text-lg font-semibold mb-4">User Performance</h2>
+            <div class="overflow-x-auto">
+                <table class="table table-zebra">
+                    <thead>
+                        <tr>
+                            <th>User</th>
+                            <th>Total Tasks</th>
+                            <th>Completed</th>
+                            <th>In Progress</th>
+                            <th>Overdue</th>
+                            <th>Completion Rate</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for perf in user_performance %}
+                        <tr>
+                            <td class="font-semibold">
+                                {{ perf.assigned_to__first_name }} {{ perf.assigned_to__last_name|default:perf.assigned_to__username }}
+                            </td>
+                            <td>{{ perf.total }}</td>
+                            <td>
+                                <span class="badge badge-success">{{ perf.completed }}</span>
+                            </td>
+                            <td>
+                                <span class="badge badge-primary">{{ perf.in_progress }}</span>
+                            </td>
+                            <td>
+                                {% if perf.overdue > 0 %}
+                                <span class="badge badge-error">{{ perf.overdue }}</span>
+                                {% else %}
+                                <span class="text-gray-400">0</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if perf.total > 0 %}
+                                    {% widthratio perf.completed perf.total 100 %}%
+                                {% else %}
+                                    0%
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Recent Completed Tasks -->
+    {% if recent_completed %}
+    <div class="card shadow-xl">
+        <div class="card-body">
+            <h2 class="card-title text-gray-800 text-lg font-semibold mb-4">Recent Completed Tasks</h2>
+            <div class="space-y-2">
+                {% for task in recent_completed %}
+                <div class="flex items-center justify-between p-3 bg-gray-50 rounded">
+                    <div>
+                        <a href="{% url 'tasks:detail' task.id %}" class="font-semibold text-gray-900 hover:text-primary">
+                            {{ task.title }}
+                        </a>
+                        <div class="text-sm text-gray-500">
+                            {{ task.project.name }} • Completed {{ task.completed_at|date:"M d, Y" }}
+                        </div>
+                    </div>
+                    {% if task.assigned_to %}
+                    <div class="text-sm text-gray-600">
+                        {% if task.assigned_to.get_full_name %}{{ task.assigned_to.get_full_name }}{% else %}{{ task.assigned_to.username }}{% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

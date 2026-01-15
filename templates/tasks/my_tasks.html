@@ -1,0 +1,169 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}My Tasks - HRMS{% endblock %}
+
+{% block page_header %}
+<div class="mb-6">
+    <div class="flex justify-between items-center mb-4">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-900 flex items-center gap-3 mb-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+                My Tasks
+            </h1>
+            <div class="breadcrumbs text-sm">
+                <ul>
+                    <li><a href="{% url 'accounts:dashboard' %}" class="text-gray-500 hover:text-gray-700">Dashboard</a></li>
+                    <li class="text-gray-400">My Tasks</li>
+                </ul>
+            </div>
+        </div>
+        <a href="{% url 'tasks:kanban' %}" class="btn btn-outline btn-primary">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2" />
+            </svg>
+            Kanban Board
+        </a>
+    </div>
+    
+    <!-- Statistics Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        <div class="stat stat-card gradient-primary text-white rounded-xl">
+            <div class="stat-title text-white/90 font-semibold">Total Tasks</div>
+            <div class="stat-value text-3xl font-bold text-white">{{ total_tasks }}</div>
+        </div>
+        
+        <div class="stat stat-card gradient-info text-white rounded-xl">
+            <div class="stat-title text-white/90 font-semibold">In Progress</div>
+            <div class="stat-value text-3xl font-bold text-white">{{ in_progress_tasks }}</div>
+        </div>
+        
+        <div class="stat stat-card gradient-success text-white rounded-xl">
+            <div class="stat-title text-white/90 font-semibold">Completed</div>
+            <div class="stat-value text-3xl font-bold text-white">{{ completed_tasks }}</div>
+        </div>
+        
+        <div class="stat stat-card gradient-warning text-white rounded-xl">
+            <div class="stat-title text-white/90 font-semibold">Overdue</div>
+            <div class="stat-value text-3xl font-bold text-white">{{ overdue_tasks }}</div>
+        </div>
+    </div>
+    
+    <!-- Filters -->
+    <div class="card shadow-xl mb-6">
+        <div class="card-body">
+            <form method="get" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div class="form-control">
+                    <input type="text" name="search" placeholder="Search tasks..." class="input input-bordered w-full" value="{{ search_query }}">
+                </div>
+                
+                <div class="form-control">
+                    <select name="status" class="select select-bordered w-full">
+                        <option value="">All Statuses</option>
+                        <option value="TO_DO" {% if status_filter == 'TO_DO' %}selected{% endif %}>To Do</option>
+                        <option value="IN_PROGRESS" {% if status_filter == 'IN_PROGRESS' %}selected{% endif %}>In Progress</option>
+                        <option value="COMPLETED" {% if status_filter == 'COMPLETED' %}selected{% endif %}>Completed</option>
+                        <option value="BLOCKED" {% if status_filter == 'BLOCKED' %}selected{% endif %}>Blocked</option>
+                    </select>
+                </div>
+                
+                <div class="form-control">
+                    <select name="priority" class="select select-bordered w-full">
+                        <option value="">All Priorities</option>
+                        <option value="LOW" {% if priority_filter == 'LOW' %}selected{% endif %}>Low</option>
+                        <option value="MEDIUM" {% if priority_filter == 'MEDIUM' %}selected{% endif %}>Medium</option>
+                        <option value="HIGH" {% if priority_filter == 'HIGH' %}selected{% endif %}>High</option>
+                        <option value="URGENT" {% if priority_filter == 'URGENT' %}selected{% endif %}>Urgent</option>
+                    </select>
+                </div>
+                
+                <div class="form-control">
+                    <button type="submit" class="btn btn-primary w-full">Filter</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="space-y-4">
+    {% if tasks %}
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {% for task in tasks %}
+        <div class="card shadow-xl card-hover">
+            <div class="card-body">
+                <div class="flex justify-between items-start mb-2">
+                    <h3 class="card-title text-lg">
+                        <a href="{% url 'tasks:detail' task.id %}" class="hover:text-primary">
+                            {{ task.title }}
+                        </a>
+                    </h3>
+                    {% if task.priority == 'URGENT' %}
+                        <span class="badge badge-error">{{ task.get_priority_display }}</span>
+                    {% elif task.priority == 'HIGH' %}
+                        <span class="badge badge-warning">{{ task.get_priority_display }}</span>
+                    {% else %}
+                        <span class="badge badge-neutral">{{ task.get_priority_display }}</span>
+                    {% endif %}
+                </div>
+                
+                <p class="text-sm text-gray-600 mb-3">
+                    <a href="{% url 'projects:detail' task.project.id %}" class="link link-primary">
+                        {{ task.project.name }}
+                    </a>
+                </p>
+                
+                {% if task.description %}
+                <p class="text-sm text-gray-500 mb-3">{{ task.description|truncatewords:15 }}</p>
+                {% endif %}
+                
+                <div class="flex items-center justify-between mb-3">
+                    <div>
+                        {% if task.status == 'COMPLETED' %}
+                            <span class="badge badge-success">{{ task.get_status_display }}</span>
+                        {% elif task.status == 'IN_PROGRESS' %}
+                            <span class="badge badge-primary">{{ task.get_status_display }}</span>
+                        {% elif task.status == 'BLOCKED' %}
+                            <span class="badge badge-error">{{ task.get_status_display }}</span>
+                        {% else %}
+                            <span class="badge badge-neutral">{{ task.get_status_display }}</span>
+                        {% endif %}
+                    </div>
+                    {% if task.deadline %}
+                    <div class="text-xs text-gray-500">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        {{ task.deadline|date:"M d, Y" }}
+                        {% if task.is_overdue %}
+                        <span class="badge badge-error badge-xs ml-1">Overdue</span>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <div class="card-actions">
+                    <a href="{% url 'tasks:detail' task.id %}" class="btn btn-sm btn-primary">View Details</a>
+                    <a href="{% url 'tasks:update' task.id %}" class="btn btn-sm btn-outline">Edit</a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="card shadow-xl">
+        <div class="card-body">
+            <div class="empty-state text-center py-12">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                </svg>
+                <p class="text-gray-500 text-lg">No tasks assigned to you</p>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

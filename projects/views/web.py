@@ -1,0 +1,480 @@
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from django.db.models import Q
+from django.core.paginator import Paginator
+from django.utils import timezone
+from django.http import JsonResponse
+from projects.models import Project, ProjectAssignment, Milestone, Payment
+from projects.forms import ProjectForm, MilestoneForm, PaymentForm
+from tasks.models import Task
+
+
+@login_required
+def list_projects(request):
+    """List all projects with filtering and pagination"""
+    user = request.user
+    organization = user.organization
+    
+    # Base queryset
+    queryset = Project.objects.select_related(
+        'organization', 'project_manager', 'created_by'
+    ).prefetch_related('assignments__user').all()
+    
+    # Filter by organization
+    if organization:
+        queryset = queryset.filter(organization=organization)
+    
+    # Role-based filtering
+    if user.is_ceo:
+        # CEO sees all projects
+        pass
+    elif user.is_pm:
+        # PM sees projects they manage or are assigned to
+        queryset = queryset.filter(
+            Q(project_manager=user) | Q(assignments__user=user)
+        ).distinct()
+    elif user.is_dev or user.is_uiux:
+        # Developers/UIUX see projects they're assigned to
+        queryset = queryset.filter(assignments__user=user).distinct()
+    elif user.is_hr or user.is_bde:
+        # HR and BDE can see all projects (read-only)
+        pass
+    else:
+        queryset = Project.objects.none()
+    
+    # Filtering
+    status_filter = request.GET.get('status')
+    priority_filter = request.GET.get('priority')
+    search_query = request.GET.get('search')
+    
+    if status_filter:
+        queryset = queryset.filter(status=status_filter)
+    
+    if priority_filter:
+        queryset = queryset.filter(priority=priority_filter)
+    
+    if search_query:
+        queryset = queryset.filter(
+            Q(name__icontains=search_query) |
+            Q(description__icontains=search_query) |
+            Q(client_name__icontains=search_query) |
+            Q(client_company__icontains=search_query)
+        )
+    
+    # Statistics (before filtering)
+    stats_queryset = queryset
+    total_projects = stats_queryset.count()
+    in_progress = stats_queryset.filter(status='IN_PROGRESS').count()
+    completed = stats_queryset.filter(status='COMPLETED').count()
+    on_hold = stats_queryset.filter(status='ON_HOLD').count()
+    
+    # Ordering
+    ordering = request.GET.get('ordering', '-created_at')
+    queryset = queryset.order_by(ordering)
+    
+    # Pagination
+    paginator = Paginator(queryset, 12)  # 12 projects per page
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    context = {
+        'projects': page_obj,
+        'total_projects': total_projects,
+        'in_progress': in_progress,
+        'completed': completed,
+        'on_hold': on_hold,
+        'status_filter': status_filter,
+        'priority_filter': priority_filter,
+        'search_query': search_query,
+        'ordering': ordering,
+        'can_create': user.is_ceo,
+        'can_edit': user.is_ceo or user.is_pm,
+        'user': user,
+    }
+    
+    return render(request, 'projects/list.html', context)
+
+
+@login_required
+def detail_project(request, id):
+    """Project detail view"""
+    user = request.user
+    
+    # Get project with related data
+    project = get_object_or_404(
+        Project.objects.select_related(
+            'organization', 'project_manager', 'created_by'
+        ),
+        id=id
+    )
+    
+    # Check permissions
+    if not user.is_ceo:
+        if user.is_pm and project.project_manager != user:
+            if not ProjectAssignment.objects.filter(project=project, user=user).exists():
+                return redirect('projects:list')
+        elif user.is_dev or user.is_uiux:
+            if not ProjectAssignment.objects.filter(project=project, user=user).exists():
+                return redirect('projects:list')
+        elif not (user.is_hr or user.is_bde):
+            return redirect('projects:list')
+    
+    # Get related data
+    assignments = ProjectAssignment.objects.filter(
+        project=project
+    ).select_related('user')
+    
+    tasks = Task.objects.filter(project=project).select_related(
+        'assigned_to', 'created_by'
+    ).order_by('-created_at')[:10]
+    
+    total_tasks = Task.objects.filter(project=project).count()
+    completed_tasks = Task.objects.filter(
+        project=project, status='COMPLETED'
+    ).count()
+    
+    # Get milestones with calculated days
+    milestones_list = Milestone.objects.filter(
+        project=project
+    ).select_related('assigned_to', 'created_by').order_by('due_date', '-created_at')
+    
+    # Calculate days for each milestone
+    milestones = []
+    today = timezone.now().date()
+    for milestone in milestones_list:
+        if milestone.due_date:
+            days = (milestone.due_date - today).days
+            milestone.days_remaining = days
+        else:
+            milestone.days_remaining = None
+        milestones.append(milestone)
+    
+    # Get payments
+    payments = Payment.objects.filter(
+        project=project
+    ).select_related('milestone', 'created_by').order_by('-due_date', '-created_at')
+    
+    # Calculate payment statistics
+    total_payment_amount = sum(p.amount for p in payments) if payments else 0
+    total_paid_amount = sum(p.paid_amount for p in payments) if payments else 0
+    remaining_payment_amount = total_payment_amount - total_paid_amount
+    pending_payments = payments.filter(status__in=['PENDING', 'PARTIAL', 'OVERDUE']).count() if payments else 0
+    
+    # Calculate days remaining
+    days_remaining = None
+    days_overdue = None
+    if project.deadline:
+        today = timezone.now().date()
+        days_remaining = (project.deadline - today).days
+        if days_remaining < 0:
+            days_overdue = abs(days_remaining)
+            days_remaining = None
+    
+    context = {
+        'project': project,
+        'assignments': assignments,
+        'tasks': tasks,
+        'total_tasks': total_tasks,
+        'completed_tasks': completed_tasks,
+        'milestones': milestones,
+        'payments': payments,
+        'total_payment_amount': total_payment_amount,
+        'total_paid_amount': total_paid_amount,
+        'remaining_payment_amount': remaining_payment_amount,
+        'pending_payments': pending_payments,
+        'days_remaining': days_remaining,
+        'days_overdue': days_overdue,
+        'can_edit': user.is_ceo or (user.is_pm and project.project_manager == user),
+        'can_delete': user.is_ceo,
+    }
+    
+    return render(request, 'projects/detail.html', context)
+
+
+@login_required
+def create_project(request):
+    """Create a new project"""
+    user = request.user
+    
+    # Only CEO can create projects
+    if not user.is_ceo:
+        messages.error(request, 'You do not have permission to create projects.')
+        return redirect('projects:list')
+    
+    if request.method == 'POST':
+        form = ProjectForm(request.POST, user=user)
+        if form.is_valid():
+            project = form.save(commit=False)
+            project.created_by = user
+            project.save()
+            messages.success(request, f'Project "{project.name}" created successfully!')
+            return redirect('projects:detail', id=project.id)
+    else:
+        form = ProjectForm(user=user)
+    
+    context = {
+        'form': form,
+        'title': 'Create New Project',
+        'action': 'Create'
+    }
+    
+    return render(request, 'projects/form.html', context)
+
+
+@login_required
+def update_project(request, id):
+    """Update an existing project"""
+    user = request.user
+    project = get_object_or_404(Project, id=id)
+    
+    # Check permissions - CEO or PM managing this project
+    if not user.is_ceo and not (user.is_pm and project.project_manager == user):
+        messages.error(request, 'You do not have permission to edit this project.')
+        return redirect('projects:detail', id=project.id)
+    
+    if request.method == 'POST':
+        form = ProjectForm(request.POST, instance=project, user=user)
+        if form.is_valid():
+            # Handle status changes
+            old_status = project.status
+            project = form.save()
+            new_status = project.status
+            
+            # Auto-set started_at when status changes to IN_PROGRESS
+            if new_status == 'IN_PROGRESS' and not project.started_at:
+                project.started_at = timezone.now()
+                project.save()
+            
+            # Auto-set completed_at when status changes to COMPLETED
+            if new_status == 'COMPLETED' and not project.completed_at:
+                project.completed_at = timezone.now()
+                project.completion_percentage = 100
+                project.save()
+            
+            messages.success(request, f'Project "{project.name}" updated successfully!')
+            return redirect('projects:detail', id=project.id)
+    else:
+        form = ProjectForm(instance=project, user=user)
+    
+    context = {
+        'form': form,
+        'project': project,
+        'title': f'Edit Project: {project.name}',
+        'action': 'Update'
+    }
+    
+    return render(request, 'projects/form.html', context)
+
+
+@login_required
+def delete_project(request, id):
+    """Delete a project"""
+    user = request.user
+    project = get_object_or_404(Project, id=id)
+    
+    # Only CEO can delete projects
+    if not user.is_ceo:
+        messages.error(request, 'You do not have permission to delete projects.')
+        return redirect('projects:detail', id=project.id)
+    
+    if request.method == 'POST':
+        project_name = project.name
+        project.delete()
+        messages.success(request, f'Project "{project_name}" deleted successfully!')
+        return redirect('projects:list')
+    
+    context = {
+        'project': project
+    }
+    
+    return render(request, 'projects/delete_confirm.html', context)
+
+
+# Milestone Management Views
+@login_required
+def create_milestone(request, project_id):
+    """Create a new milestone for a project"""
+    user = request.user
+    project = get_object_or_404(Project, id=project_id)
+    
+    # Check permissions
+    if not user.is_ceo and not (user.is_pm and project.project_manager == user):
+        messages.error(request, 'You do not have permission to create milestones.')
+        return redirect('projects:detail', id=project_id)
+    
+    if request.method == 'POST':
+        form = MilestoneForm(request.POST, project=project, user=user)
+        if form.is_valid():
+            milestone = form.save(commit=False)
+            milestone.project = project
+            milestone.created_by = user
+            milestone.save()
+            messages.success(request, f'Milestone "{milestone.name}" created successfully!')
+            return redirect('projects:detail', id=project_id)
+    else:
+        form = MilestoneForm(project=project, user=user)
+    
+    context = {
+        'form': form,
+        'project': project,
+        'title': 'Create New Milestone',
+        'action': 'Create'
+    }
+    
+    return render(request, 'projects/milestone_form.html', context)
+
+
+@login_required
+def update_milestone(request, project_id, milestone_id):
+    """Update an existing milestone"""
+    user = request.user
+    project = get_object_or_404(Project, id=project_id)
+    milestone = get_object_or_404(Milestone, id=milestone_id, project=project)
+    
+    # Check permissions
+    if not user.is_ceo and not (user.is_pm and project.project_manager == user):
+        messages.error(request, 'You do not have permission to edit milestones.')
+        return redirect('projects:detail', id=project_id)
+    
+    if request.method == 'POST':
+        form = MilestoneForm(request.POST, instance=milestone, project=project, user=user)
+        if form.is_valid():
+            milestone = form.save()
+            # Auto-set completed_date when status changes to COMPLETED
+            if milestone.status == 'COMPLETED' and not milestone.completed_date:
+                milestone.completed_date = timezone.now().date()
+                milestone.completion_percentage = 100
+                milestone.save()
+            messages.success(request, f'Milestone "{milestone.name}" updated successfully!')
+            return redirect('projects:detail', id=project_id)
+    else:
+        form = MilestoneForm(instance=milestone, project=project, user=user)
+    
+    context = {
+        'form': form,
+        'project': project,
+        'milestone': milestone,
+        'title': f'Edit Milestone: {milestone.name}',
+        'action': 'Update'
+    }
+    
+    return render(request, 'projects/milestone_form.html', context)
+
+
+@login_required
+def delete_milestone(request, project_id, milestone_id):
+    """Delete a milestone"""
+    user = request.user
+    project = get_object_or_404(Project, id=project_id)
+    milestone = get_object_or_404(Milestone, id=milestone_id, project=project)
+    
+    # Check permissions
+    if not user.is_ceo and not (user.is_pm and project.project_manager == user):
+        messages.error(request, 'You do not have permission to delete milestones.')
+        return redirect('projects:detail', id=project_id)
+    
+    if request.method == 'POST':
+        milestone_name = milestone.name
+        milestone.delete()
+        messages.success(request, f'Milestone "{milestone_name}" deleted successfully!')
+        return redirect('projects:detail', id=project_id)
+    
+    context = {
+        'project': project,
+        'milestone': milestone
+    }
+    
+    return render(request, 'projects/milestone_delete_confirm.html', context)
+
+
+# Payment Management Views
+@login_required
+def create_payment(request, project_id):
+    """Create a new payment for a project"""
+    user = request.user
+    project = get_object_or_404(Project, id=project_id)
+    
+    # Check permissions - CEO and PM can create payments
+    if not user.is_ceo and not (user.is_pm and project.project_manager == user):
+        messages.error(request, 'You do not have permission to create payments.')
+        return redirect('projects:detail', id=project_id)
+    
+    if request.method == 'POST':
+        form = PaymentForm(request.POST, project=project)
+        if form.is_valid():
+            payment = form.save(commit=False)
+            payment.project = project
+            payment.created_by = user
+            payment.save()
+            messages.success(request, f'Payment of ${payment.amount} created successfully!')
+            return redirect('projects:detail', id=project_id)
+    else:
+        form = PaymentForm(project=project)
+    
+    context = {
+        'form': form,
+        'project': project,
+        'title': 'Create New Payment',
+        'action': 'Create'
+    }
+    
+    return render(request, 'projects/payment_form.html', context)
+
+
+@login_required
+def update_payment(request, project_id, payment_id):
+    """Update an existing payment"""
+    user = request.user
+    project = get_object_or_404(Project, id=project_id)
+    payment = get_object_or_404(Payment, id=payment_id, project=project)
+    
+    # Check permissions
+    if not user.is_ceo and not (user.is_pm and project.project_manager == user):
+        messages.error(request, 'You do not have permission to edit payments.')
+        return redirect('projects:detail', id=project_id)
+    
+    if request.method == 'POST':
+        form = PaymentForm(request.POST, instance=payment, project=project)
+        if form.is_valid():
+            payment = form.save()
+            messages.success(request, f'Payment updated successfully!')
+            return redirect('projects:detail', id=project_id)
+    else:
+        form = PaymentForm(instance=payment, project=project)
+    
+    context = {
+        'form': form,
+        'project': project,
+        'payment': payment,
+        'title': f'Edit Payment',
+        'action': 'Update'
+    }
+    
+    return render(request, 'projects/payment_form.html', context)
+
+
+@login_required
+def delete_payment(request, project_id, payment_id):
+    """Delete a payment"""
+    user = request.user
+    project = get_object_or_404(Project, id=project_id)
+    payment = get_object_or_404(Payment, id=payment_id, project=project)
+    
+    # Check permissions
+    if not user.is_ceo and not (user.is_pm and project.project_manager == user):
+        messages.error(request, 'You do not have permission to delete payments.')
+        return redirect('projects:detail', id=project_id)
+    
+    if request.method == 'POST':
+        payment_amount = payment.amount
+        payment.delete()
+        messages.success(request, f'Payment of ${payment_amount} deleted successfully!')
+        return redirect('projects:detail', id=project_id)
+    
+    context = {
+        'project': project,
+        'payment': payment
+    }
+    
+    return render(request, 'projects/payment_delete_confirm.html', context)

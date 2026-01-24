@@ -1,0 +1,177 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ title }} - HRMS{% endblock %}
+
+{% block page_header %}
+<div class="mb-6">
+    <h1 class="text-3xl font-bold text-gray-900 flex items-center gap-3 mb-2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+        </svg>
+        {{ title }}
+    </h1>
+    <div class="breadcrumbs text-sm">
+        <ul>
+            <li><a href="{% url 'accounts:dashboard' %}" class="text-gray-500 hover:text-gray-700">Dashboard</a></li>
+            <li><a href="{% url 'leads_crm:list' %}" class="text-gray-500 hover:text-gray-700">Leads</a></li>
+            <li class="text-gray-400">{% if lead %}Update{% else %}Create{% endif %}</li>
+        </ul>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <div class="card shadow-xl">
+        <div class="card-body">
+            <form method="post" class="space-y-6">
+                {% csrf_token %}
+                
+                <!-- Basic Information -->
+                <div class="space-y-4">
+                    <h2 class="text-xl font-semibold text-gray-800 mb-4">Basic Information</h2>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text font-medium">Contact Name <span class="text-error">*</span></span>
+                            </label>
+                            {{ form.name }}
+                            {% if form.name.errors %}
+                                <label class="label">
+                                    <span class="label-text-alt text-error">{{ form.name.errors }}</span>
+                                </label>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text font-medium">Company Name <span class="text-error">*</span></span>
+                            </label>
+                            {{ form.company_name }}
+                            {% if form.company_name.errors %}
+                                <label class="label">
+                                    <span class="label-text-alt text-error">{{ form.company_name.errors }}</span>
+                                </label>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text font-medium">Email <span class="text-error">*</span></span>
+                            </label>
+                            {{ form.email }}
+                            {% if form.email.errors %}
+                                <label class="label">
+                                    <span class="label-text-alt text-error">{{ form.email.errors }}</span>
+                                </label>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text font-medium">Phone</span>
+                            </label>
+                            {{ form.phone }}
+                            {% if form.phone.errors %}
+                                <label class="label">
+                                    <span class="label-text-alt text-error">{{ form.phone.errors }}</span>
+                                </label>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Lead Details -->
+                <div class="divider"></div>
+                <div class="space-y-4">
+                    <h2 class="text-xl font-semibold text-gray-800 mb-4">Lead Details</h2>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text font-medium">Stage <span class="text-error">*</span></span>
+                            </label>
+                            {{ form.stage }}
+                            {% if form.stage.errors %}
+                                <label class="label">
+                                    <span class="label-text-alt text-error">{{ form.stage.errors }}</span>
+                                </label>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text font-medium">Expected Revenue</span>
+                            </label>
+                            {{ form.expected_revenue }}
+                            {% if form.expected_revenue.errors %}
+                                <label class="label">
+                                    <span class="label-text-alt text-error">{{ form.expected_revenue.errors }}</span>
+                                </label>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text font-medium">Win Probability (%)</span>
+                        </label>
+                        {{ form.probability }}
+                        {% if form.probability.errors %}
+                            <label class="label">
+                                <span class="label-text-alt text-error">{{ form.probability.errors }}</span>
+                            </label>
+                        {% endif %}
+                        <label class="label">
+                            <span class="label-text-alt text-gray-500">Enter a value between 0 and 100</span>
+                        </label>
+                    </div>
+                    
+                    {% if form.assigned_to %}
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text font-medium">Assigned To</span>
+                        </label>
+                        {{ form.assigned_to }}
+                        {% if form.assigned_to.errors %}
+                            <label class="label">
+                                <span class="label-text-alt text-error">{{ form.assigned_to.errors }}</span>
+                            </label>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                    
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text font-medium">Notes</span>
+                        </label>
+                        {{ form.notes }}
+                        {% if form.notes.errors %}
+                            <label class="label">
+                                <span class="label-text-alt text-error">{{ form.notes.errors }}</span>
+                            </label>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <!-- Form Actions -->
+                <div class="divider"></div>
+                <div class="flex justify-end gap-4">
+                    <a href="{% url 'leads_crm:list' %}" class="btn btn-ghost">Cancel</a>
+                    <button type="submit" class="btn btn-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                        </svg>
+                        {% if lead %}Update{% else %}Create{% endif %} Lead
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

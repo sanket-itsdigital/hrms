@@ -1,0 +1,292 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Leads - HRMS{% endblock %}
+
+{% block page_header %}
+<div class="mb-6">
+    <div class="flex justify-between items-center mb-4">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-900 flex items-center gap-3 mb-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+                Leads Management
+            </h1>
+            <div class="breadcrumbs text-sm">
+                <ul>
+                    <li><a href="{% url 'accounts:dashboard' %}" class="text-gray-500 hover:text-gray-700">Dashboard</a></li>
+                    <li class="text-gray-400">Leads</li>
+                </ul>
+            </div>
+        </div>
+        {% if can_edit %}
+        <a href="{% url 'leads_crm:create' %}" class="btn btn-primary">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            </svg>
+            Add New Lead
+        </a>
+        {% endif %}
+    </div>
+    
+    <!-- Statistics Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-8 gap-4 mb-6">
+        <div class="stat stat-card gradient-primary text-white rounded-xl">
+            <div class="stat-title text-white/90 font-semibold">Total Leads</div>
+            <div class="stat-value text-3xl font-bold text-white">{{ total_leads }}</div>
+        </div>
+        
+        <div class="stat stat-card bg-blue-600 text-white rounded-xl">
+            <div class="stat-title text-white/90 font-semibold">New</div>
+            <div class="stat-value text-3xl font-bold text-white">{{ new_count }}</div>
+        </div>
+        
+        <div class="stat stat-card bg-cyan-600 text-white rounded-xl">
+            <div class="stat-title text-white/90 font-semibold">Contacted</div>
+            <div class="stat-value text-3xl font-bold text-white">{{ contacted_count }}</div>
+        </div>
+        
+        <div class="stat stat-card bg-indigo-600 text-white rounded-xl">
+            <div class="stat-title text-white/90 font-semibold">Proposal Sent</div>
+            <div class="stat-value text-3xl font-bold text-white">{{ proposal_sent_count }}</div>
+        </div>
+        
+        <div class="stat stat-card bg-purple-600 text-white rounded-xl">
+            <div class="stat-title text-white/90 font-semibold">Negotiation</div>
+            <div class="stat-value text-3xl font-bold text-white">{{ negotiation_count }}</div>
+        </div>
+        
+        <div class="stat stat-card gradient-success text-white rounded-xl">
+            <div class="stat-title text-white/90 font-semibold">Won</div>
+            <div class="stat-value text-3xl font-bold text-white">{{ won_count }}</div>
+        </div>
+        
+        <div class="stat stat-card gradient-error text-white rounded-xl">
+            <div class="stat-title text-white/90 font-semibold">Lost</div>
+            <div class="stat-value text-3xl font-bold text-white">{{ lost_count }}</div>
+        </div>
+        
+        <div class="stat stat-card bg-gradient-to-br from-green-600 to-green-700 text-white rounded-xl">
+            <div class="stat-title text-white/90 font-semibold">Total Revenue</div>
+            <div class="stat-value text-2xl font-bold text-white">₹{{ total_revenue|floatformat:0 }}</div>
+        </div>
+    </div>
+    
+    <!-- Pipeline Revenue -->
+    <div class="card mb-6">
+        <div class="card-body">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h3 class="text-lg font-semibold">Pipeline Revenue</h3>
+                    <p class="text-2xl font-bold text-blue-600">₹{{ pipeline_revenue|floatformat:0 }}</p>
+                </div>
+                <div class="text-sm text-gray-500">
+                    Potential revenue from active leads
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Filters -->
+    <div class="card mb-6">
+        <div class="card-body p-4">
+            <form method="get" class="flex flex-wrap gap-4 items-end">
+                <div class="form-control flex-1 min-w-[200px]">
+                    <label class="label">
+                        <span class="label-text text-sm font-medium">Search</span>
+                    </label>
+                    <input type="text" name="search" value="{{ search_query }}" placeholder="Search by name, company, email..." class="input input-bordered w-full" />
+                </div>
+                
+                <div class="form-control min-w-[150px]">
+                    <label class="label">
+                        <span class="label-text text-sm font-medium">Stage</span>
+                    </label>
+                    <select name="stage" class="select select-bordered w-full">
+                        <option value="">All Stages</option>
+                        <option value="NEW" {% if stage_filter == 'NEW' %}selected{% endif %}>New</option>
+                        <option value="CONTACTED" {% if stage_filter == 'CONTACTED' %}selected{% endif %}>Contacted</option>
+                        <option value="PROPOSAL_SENT" {% if stage_filter == 'PROPOSAL_SENT' %}selected{% endif %}>Proposal Sent</option>
+                        <option value="NEGOTIATION" {% if stage_filter == 'NEGOTIATION' %}selected{% endif %}>Negotiation</option>
+                        <option value="CLOSED_WON" {% if stage_filter == 'CLOSED_WON' %}selected{% endif %}>Closed Won</option>
+                        <option value="CLOSED_LOST" {% if stage_filter == 'CLOSED_LOST' %}selected{% endif %}>Closed Lost</option>
+                    </select>
+                </div>
+                
+                {% if users %}
+                <div class="form-control min-w-[180px]">
+                    <label class="label">
+                        <span class="label-text text-sm font-medium">Assigned To</span>
+                    </label>
+                    <select name="assigned" class="select select-bordered w-full">
+                        <option value="">All Assignees</option>
+                        {% for u in users %}
+                        <option value="{{ u.id }}" {% if assigned_filter == u.id|stringformat:"s" %}selected{% endif %}>
+                            {{ u.get_full_name|default:u.email }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                {% endif %}
+                
+                <div class="form-control">
+                    <button type="submit" class="btn btn-primary">Filter</button>
+                </div>
+                
+                {% if search_query or stage_filter or assigned_filter %}
+                <div class="form-control">
+                    <a href="{% url 'leads_crm:list' %}" class="btn btn-ghost">Clear</a>
+                </div>
+                {% endif %}
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Leads Table -->
+    {% if leads %}
+    <div class="card">
+        <div class="card-body p-0">
+            <div class="overflow-x-auto">
+                <table class="table table-zebra w-full">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Company</th>
+                            <th>Contact</th>
+                            <th>Stage</th>
+                            <th>Expected Revenue</th>
+                            <th>Probability</th>
+                            <th>Assigned To</th>
+                            <th>Created</th>
+                            {% if can_edit %}
+                            <th>Actions</th>
+                            {% endif %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for lead in leads %}
+                        <tr>
+                            <td>
+                                <div class="font-medium">{{ lead.name }}</div>
+                                {% if lead.converted_to_project %}
+                                <span class="badge badge-success badge-sm">Converted</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="font-semibold">{{ lead.company_name }}</div>
+                            </td>
+                            <td>
+                                <div class="text-sm">{{ lead.email }}</div>
+                                {% if lead.phone %}
+                                <div class="text-xs text-gray-500">{{ lead.phone }}</div>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if lead.stage == 'NEW' %}
+                                    <span class="badge badge-info">{{ lead.get_stage_display }}</span>
+                                {% elif lead.stage == 'CONTACTED' %}
+                                    <span class="badge" style="background-color: #0891b2; color: white;">{{ lead.get_stage_display }}</span>
+                                {% elif lead.stage == 'PROPOSAL_SENT' %}
+                                    <span class="badge" style="background-color: #4f46e5; color: white;">{{ lead.get_stage_display }}</span>
+                                {% elif lead.stage == 'NEGOTIATION' %}
+                                    <span class="badge" style="background-color: #9333ea; color: white;">{{ lead.get_stage_display }}</span>
+                                {% elif lead.stage == 'CLOSED_WON' %}
+                                    <span class="badge badge-success">{{ lead.get_stage_display }}</span>
+                                {% elif lead.stage == 'CLOSED_LOST' %}
+                                    <span class="badge badge-error">{{ lead.get_stage_display }}</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if lead.expected_revenue %}
+                                    <span class="font-bold">₹{{ lead.expected_revenue|floatformat:0 }}</span>
+                                {% else %}
+                                    <span class="text-gray-400">-</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="flex items-center gap-2">
+                                    <progress class="progress progress-primary w-20" value="{{ lead.probability }}" max="100"></progress>
+                                    <span class="text-sm font-semibold">{{ lead.probability }}%</span>
+                                </div>
+                            </td>
+                            <td>
+                                {% if lead.assigned_to %}
+                                    <div class="text-sm">{{ lead.assigned_to.get_full_name|default:lead.assigned_to.email }}</div>
+                                {% else %}
+                                    <span class="text-gray-400">Unassigned</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="text-sm">{{ lead.created_at|date:"M d, Y" }}</div>
+                                <div class="text-xs text-gray-500">{{ lead.created_at|date:"h:i A" }}</div>
+                            </td>
+                            {% if can_edit %}
+                            <td>
+                                <div class="flex gap-2">
+                                    <a href="{% url 'leads_crm:update' lead.id %}" class="btn btn-sm btn-outline btn-primary" title="Edit">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                        </svg>
+                                    </a>
+                                    {% if user.is_ceo and not lead.converted_to_project %}
+                                    <a href="{% url 'leads_crm:convert' lead.id %}" class="btn btn-sm btn-success" title="Convert to Project">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                                        </svg>
+                                    </a>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            {% endif %}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Pagination -->
+    {% if leads.has_other_pages %}
+    <div class="flex justify-center mt-6">
+        <div class="join">
+            {% if leads.has_previous %}
+                <a href="?page={{ leads.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if stage_filter %}&stage={{ stage_filter }}{% endif %}{% if assigned_filter %}&assigned={{ assigned_filter }}{% endif %}" class="join-item btn">«</a>
+            {% endif %}
+            
+            <span class="join-item btn btn-active">{{ leads.number }} of {{ leads.paginator.num_pages }}</span>
+            
+            {% if leads.has_next %}
+                <a href="?page={{ leads.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if stage_filter %}&stage={{ stage_filter }}{% endif %}{% if assigned_filter %}&assigned={{ assigned_filter }}{% endif %}" class="join-item btn">»</a>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+    
+    {% else %}
+    <div class="card">
+        <div class="card-body text-center py-12">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-24 w-24 mx-auto mb-6 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+            </svg>
+            <h3 class="text-2xl font-bold mb-4 text-gray-700">No Leads Found</h3>
+            <p class="text-gray-500 mb-6">
+                {% if search_query or stage_filter or assigned_filter %}
+                    No leads match your filters. Try adjusting your search criteria.
+                {% else %}
+                    No leads have been created yet.
+                {% endif %}
+            </p>
+            {% if can_edit %}
+            <a href="{% url 'leads_crm:create' %}" class="btn btn-primary">Add First Lead</a>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

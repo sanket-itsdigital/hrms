@@ -1,0 +1,249 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}API Documentation - {{ project.name }} - HRMS{% endblock %}
+
+{% block page_header %}
+<div class="mb-6">
+    <div class="flex justify-between items-center mb-4">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-900 flex items-center gap-3 mb-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                API Documentation
+            </h1>
+            <div class="breadcrumbs text-sm">
+                <ul>
+                    <li><a href="{% url 'accounts:dashboard' %}" class="text-gray-500 hover:text-gray-700">Dashboard</a></li>
+                    <li><a href="{% url 'projects:api_documentation_index' %}" class="text-gray-500 hover:text-gray-700">API Documentation</a></li>
+                    <li><a href="{% url 'projects:detail' project.id %}" class="text-gray-500 hover:text-gray-700">{{ project.name }}</a></li>
+                    <li class="text-gray-400">API Docs</li>
+                </ul>
+            </div>
+        </div>
+        <div class="flex gap-2">
+            <a href="{% url 'projects:api_documentation_index' %}" class="btn btn-ghost">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+                Back to API Docs
+            </a>
+            <a href="{% url 'projects:detail' project.id %}" class="btn btn-ghost">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+                </svg>
+                View Project
+            </a>
+            {% if can_manage %}
+            <a href="{% url 'projects:create_api_page' project.id %}" class="btn btn-primary">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                </svg>
+                Add Page
+            </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto">
+    {% if pages %}
+        <div class="space-y-6">
+            {% for page in pages %}
+                <div class="card shadow-xl bg-base-100">
+                    <div class="card-body">
+                        <div class="flex justify-between items-start mb-4">
+                            <div>
+                                <h2 class="card-title text-2xl mb-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                    </svg>
+                                    {{ page.page_name }}
+                                </h2>
+                                {% if page.figma_link %}
+                                <a href="{{ page.figma_link }}" target="_blank" class="text-sm text-blue-600 hover:underline flex items-center gap-1">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                    </svg>
+                                    View Figma Page
+                                </a>
+                                {% endif %}
+                                {% if page.description %}
+                                <p class="text-gray-600 mt-2">{{ page.description }}</p>
+                                {% endif %}
+                            </div>
+                            {% if can_manage %}
+                            <div class="flex gap-2">
+                                <a href="{% url 'projects:update_api_page' project.id page.id %}" class="btn btn-sm btn-ghost">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                    </svg>
+                                </a>
+                                <a href="{% url 'projects:delete_api_page' project.id page.id %}" class="btn btn-sm btn-error">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                    </svg>
+                                </a>
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        {% if can_manage %}
+                        <div class="mb-4">
+                            <a href="{% url 'projects:create_api_endpoint' project.id page.id %}" class="btn btn-sm btn-primary">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                                </svg>
+                                Add API Endpoint
+                            </a>
+                        </div>
+                        {% endif %}
+                        
+                        {% if page.api_endpoints.all %}
+                            <div class="overflow-x-auto">
+                                <table class="table table-zebra w-full">
+                                    <thead>
+                                        <tr>
+                                            <th>Method</th>
+                                            <th>Endpoint</th>
+                                            <th>Name</th>
+                                            <th>Description</th>
+                                            {% if can_manage %}<th>Actions</th>{% endif %}
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for endpoint in page.api_endpoints.all %}
+                                        <tr class="hover:bg-base-200 cursor-pointer" onclick="document.getElementById('endpoint-{{ endpoint.id }}').classList.toggle('hidden')">
+                                            <td>
+                                                <span class="badge badge-{% if endpoint.http_method == 'GET' %}info{% elif endpoint.http_method == 'POST' %}success{% elif endpoint.http_method == 'PUT' or endpoint.http_method == 'PATCH' %}warning{% else %}error{% endif %}">
+                                                    {{ endpoint.http_method }}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <code class="text-sm bg-gray-100 px-2 py-1 rounded">{{ endpoint.endpoint_url }}</code>
+                                            </td>
+                                            <td class="font-semibold">{{ endpoint.name }}</td>
+                                            <td class="text-sm text-gray-600">
+                                                {{ endpoint.description|truncatewords:15|default:"-" }}
+                                            </td>
+                                            {% if can_manage %}
+                                            <td>
+                                                <div class="flex gap-2">
+                                                    <a href="{% url 'projects:update_api_endpoint' project.id endpoint.id %}" class="btn btn-xs btn-ghost" onclick="event.stopPropagation()">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                                        </svg>
+                                                    </a>
+                                                    <a href="{% url 'projects:delete_api_endpoint' project.id endpoint.id %}" class="btn btn-xs btn-error" onclick="event.stopPropagation()">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                        </svg>
+                                                    </a>
+                                                </div>
+                                            </td>
+                                            {% endif %}
+                                        </tr>
+                                        <tr id="endpoint-{{ endpoint.id }}" class="hidden">
+                                            <td colspan="{% if can_manage %}5{% else %}4{% endif %}" class="bg-base-200 p-4">
+                                                <div class="space-y-4">
+                                                    {% if endpoint.description %}
+                                                    <div>
+                                                        <h4 class="font-semibold text-sm mb-2">Description:</h4>
+                                                        <p class="text-sm text-gray-700">{{ endpoint.description }}</p>
+                                                    </div>
+                                                    {% endif %}
+                                                    
+                                                    {% if endpoint.request_body %}
+                                                    <div>
+                                                        <h4 class="font-semibold text-sm mb-2">Request Body:</h4>
+                                                        <pre class="bg-gray-800 text-gray-100 p-3 rounded text-xs overflow-x-auto"><code>{{ endpoint.request_body }}</code></pre>
+                                                    </div>
+                                                    {% endif %}
+                                                    
+                                                    {% if endpoint.response_body %}
+                                                    <div>
+                                                        <h4 class="font-semibold text-sm mb-2">Response Body:</h4>
+                                                        <pre class="bg-gray-800 text-gray-100 p-3 rounded text-xs overflow-x-auto"><code>{{ endpoint.response_body }}</code></pre>
+                                                    </div>
+                                                    {% endif %}
+                                                    
+                                                    {% if endpoint.request_headers %}
+                                                    <div>
+                                                        <h4 class="font-semibold text-sm mb-2">Request Headers:</h4>
+                                                        <pre class="bg-gray-800 text-gray-100 p-3 rounded text-xs overflow-x-auto"><code>{{ endpoint.request_headers }}</code></pre>
+                                                    </div>
+                                                    {% endif %}
+                                                    
+                                                    {% if endpoint.response_status_codes %}
+                                                    <div>
+                                                        <h4 class="font-semibold text-sm mb-2">Status Codes:</h4>
+                                                        <p class="text-sm text-gray-700">{{ endpoint.response_status_codes }}</p>
+                                                    </div>
+                                                    {% endif %}
+                                                    
+                                                    <div>
+                                                        <h4 class="font-semibold text-sm mb-2">Authentication Required:</h4>
+                                                        <span class="badge badge-{% if endpoint.authentication_required %}warning{% else %}success{% endif %}">
+                                                            {% if endpoint.authentication_required %}Yes{% else %}No{% endif %}
+                                                        </span>
+                                                    </div>
+                                                    
+                                                    {% if endpoint.notes %}
+                                                    <div>
+                                                        <h4 class="font-semibold text-sm mb-2 flex items-center gap-2">
+                                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                                            </svg>
+                                                            Notes:
+                                                        </h4>
+                                                        <div class="bg-blue-50 border-l-4 border-blue-500 p-3 rounded">
+                                                            <p class="text-sm text-gray-700 whitespace-pre-line">{{ endpoint.notes }}</p>
+                                                        </div>
+                                                    </div>
+                                                    {% endif %}
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% else %}
+                            <div class="alert alert-info">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current shrink-0 w-6 h-6">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                                <span>No API endpoints added yet for this page.</span>
+                                {% if can_manage %}
+                                <a href="{% url 'projects:create_api_endpoint' project.id page.id %}" class="link">Add one now</a>
+                                {% endif %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="card shadow-xl bg-base-100">
+            <div class="card-body text-center py-12">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                <h3 class="text-xl font-semibold text-gray-700 mb-2">No API Documentation Pages</h3>
+                <p class="text-gray-500 mb-6">Get started by creating your first API documentation page.</p>
+                {% if can_manage %}
+                <a href="{% url 'projects:create_api_page' project.id %}" class="btn btn-primary">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                    </svg>
+                    Create First Page
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

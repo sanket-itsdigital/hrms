@@ -1,0 +1,125 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Projects Report - HRMS{% endblock %}
+
+{% block page_header %}
+<div class="mb-6">
+    <h1 class="text-3xl font-bold text-gray-900 flex items-center gap-3 mb-2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        </svg>
+        Projects Report
+    </h1>
+    <div class="breadcrumbs text-sm">
+        <ul>
+            <li><a href="{% url 'accounts:dashboard' %}" class="text-gray-500 hover:text-gray-700">Dashboard</a></li>
+            <li><a href="{% url 'reports:index' %}" class="text-gray-500 hover:text-gray-700">Reports</a></li>
+            <li class="text-gray-400">Projects</li>
+        </ul>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Statistics -->
+    <div class="grid grid-cols-1 md:grid-cols-6 gap-4 mb-6">
+        <div class="stat stat-card gradient-primary text-white rounded-xl">
+            <div class="stat-title text-white/90 font-semibold">Total Projects</div>
+            <div class="stat-value text-3xl font-bold text-white">{{ total_projects }}</div>
+        </div>
+        
+        <div class="stat stat-card bg-gray-600 text-white rounded-xl">
+            <div class="stat-title text-white/90 font-semibold">Not Started</div>
+            <div class="stat-value text-3xl font-bold text-white">{{ not_started }}</div>
+        </div>
+        
+        <div class="stat stat-card gradient-info text-white rounded-xl">
+            <div class="stat-title text-white/90 font-semibold">In Progress</div>
+            <div class="stat-value text-3xl font-bold text-white">{{ in_progress }}</div>
+        </div>
+        
+        <div class="stat stat-card gradient-warning text-white rounded-xl">
+            <div class="stat-title text-white/90 font-semibold">On Hold</div>
+            <div class="stat-value text-3xl font-bold text-white">{{ on_hold }}</div>
+        </div>
+        
+        <div class="stat stat-card gradient-success text-white rounded-xl">
+            <div class="stat-title text-white/90 font-semibold">Completed</div>
+            <div class="stat-value text-3xl font-bold text-white">{{ completed }}</div>
+        </div>
+        
+        <div class="stat stat-card bg-gradient-to-br from-green-600 to-green-700 text-white rounded-xl">
+            <div class="stat-title text-white/90 font-semibold">Total Budget</div>
+            <div class="stat-value text-2xl font-bold text-white">₹{{ total_budget|floatformat:0 }}</div>
+        </div>
+    </div>
+    
+    <!-- Status Distribution -->
+    {% if status_stats %}
+    <div class="card">
+        <div class="card-body">
+            <h2 class="text-xl font-semibold mb-4">Projects by Status</h2>
+            <div class="overflow-x-auto">
+                <table class="table table-zebra w-full">
+                    <thead>
+                        <tr>
+                            <th>Status</th>
+                            <th>Count</th>
+                            <th>Percentage</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for stat in status_stats %}
+                        <tr>
+                            <td>
+                                <span class="badge badge-info">{{ stat.status }}</span>
+                            </td>
+                            <td><span class="font-bold">{{ stat.count }}</span></td>
+                            <td>
+                                <div class="flex items-center gap-2">
+                                    <progress class="progress progress-primary w-32" value="{{ stat.count }}" max="{{ total_projects }}"></progress>
+                                    <span class="text-sm">{% widthratio stat.count total_projects 100 %}%</span>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Project Manager Statistics -->
+    {% if pm_stats %}
+    <div class="card">
+        <div class="card-body">
+            <h2 class="text-xl font-semibold mb-4">Projects by Manager</h2>
+            <div class="overflow-x-auto">
+                <table class="table table-zebra w-full">
+                    <thead>
+                        <tr>
+                            <th>Project Manager</th>
+                            <th>Projects Count</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for stat in pm_stats %}
+                        <tr>
+                            <td>
+                                <div class="font-medium">{{ stat.project_manager__first_name }} {{ stat.project_manager__last_name }}</div>
+                                <div class="text-xs text-gray-500">{{ stat.project_manager__email }}</div>
+                            </td>
+                            <td><span class="font-bold">{{ stat.count }}</span></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -22,6 +22,14 @@
             </div>
         </div>
         <div class="flex gap-2">
+            {% if can_view_api_docs %}
+            <a href="{% url 'projects:api_documentation' project.id %}" class="btn btn-info">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                API Documentation
+            </a>
+            {% endif %}
             {% if can_edit %}
             <a href="{% url 'projects:update' project.id %}" class="btn btn-primary">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -178,7 +186,7 @@
                         {% if project.budget %}
                         <div>
                             <span class="text-sm font-medium text-gray-600">Budget:</span>
-                            <p class="text-gray-900">${{ project.budget|floatformat:2 }}</p>
+                            <p class="text-gray-900">₹{{ project.budget|floatformat:2 }}</p>
                         </div>
                         {% endif %}
                         

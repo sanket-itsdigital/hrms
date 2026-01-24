@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Process Payroll - HRMS{% endblock %}
+
+{% block page_header %}
+<div class="mb-6">
+    <h1 class="text-3xl font-bold text-gray-900 flex items-center gap-3 mb-2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+        </svg>
+        Process Payroll
+    </h1>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto">
+    <div class="card shadow-xl">
+        <div class="card-body">
+            <div class="alert alert-info mb-6">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current shrink-0 w-6 h-6">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <span>Are you sure you want to process this payroll? This will mark it as processed and ready for payment.</span>
+            </div>
+            
+            <div class="space-y-4 mb-6">
+                <h2 class="text-xl font-semibold text-gray-800 mb-4">Payroll Details</h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="label"><span class="label-text font-medium">Employee</span></label>
+                        <div class="text-lg font-semibold">{{ payroll.user.get_full_name|default:payroll.user.email }}</div>
+                    </div>
+                    <div>
+                        <label class="label"><span class="label-text font-medium">Period</span></label>
+                        <div class="text-lg">{{ payroll.get_month_display }} {{ payroll.year }}</div>
+                    </div>
+                    <div>
+                        <label class="label"><span class="label-text font-medium">Base Salary</span></label>
+                        <div class="text-lg">₹{{ payroll.base_salary|floatformat:2 }}</div>
+                    </div>
+                    <div>
+                        <label class="label"><span class="label-text font-medium">Net Salary</span></label>
+                        <div class="text-2xl font-bold text-green-600">₹{{ payroll.net_salary|floatformat:2 }}</div>
+                    </div>
+                </div>
+            </div>
+            
+            <form method="post">
+                {% csrf_token %}
+                <div class="flex justify-end gap-4">
+                    <a href="{% url 'payroll:list' %}" class="btn btn-ghost">Cancel</a>
+                    <button type="submit" class="btn btn-info">Process Payroll</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

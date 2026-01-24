@@ -52,6 +52,20 @@ class TaskForm(forms.ModelForm):
         self.fields['project'].queryset = Project.objects.none()
         self.fields['assigned_to'].queryset = User.objects.none()
         
+        # Get project_id from form data if not provided and form has data
+        if not project_id and self.data and 'project' in self.data:
+            try:
+                project_id = int(self.data.get('project'))
+            except (ValueError, TypeError):
+                project_id = None
+        
+        # Convert project_id to int if it's a string
+        if project_id and isinstance(project_id, str):
+            try:
+                project_id = int(project_id)
+            except (ValueError, TypeError):
+                project_id = None
+        
         # Filter projects based on user role - following same pattern as projects list view
         if user:
             organization = user.organization
@@ -107,27 +121,49 @@ class TaskForm(forms.ModelForm):
         if project_id:
             project = Project.objects.filter(id=project_id).first()
             if project:
-                # Get users assigned to this project (Dev, UIUX, BDE)
+                # Get users assigned to this project (DEV, UIUX, BDE)
                 assigned_users = User.objects.filter(
                     project_assignments__project=project,
                     project_assignments__is_active=True,
-                    role__name__in=['Dev', 'UIUX', 'BDE']
+                    role__name__in=['DEV', 'UIUX', 'BDE']
                 ).distinct()
-                self.fields['assigned_to'].queryset = assigned_users
+                
+                # If no users assigned to project, fall back to all DEV/UIUX/BDE in organization
+                if not assigned_users.exists() and user and user.organization:
+                    assigned_users = User.objects.filter(
+                        organization=user.organization,
+                        role__name__in=['DEV', 'UIUX', 'BDE']
+                    )
+                
+                queryset = assigned_users.order_by('first_name', 'last_name', 'username')
+                self.fields['assigned_to'].queryset = queryset
+                self.fields['assigned_to'].empty_label = "---------"
             else:
-                # If project not found, show empty queryset
-                self.fields['assigned_to'].queryset = User.objects.none()
+                # If project not found, show all DEV/UIUX/BDE users in organization
+                if user and user.organization:
+                    queryset = User.objects.filter(
+                        organization=user.organization,
+                        role__name__in=['DEV', 'UIUX', 'BDE']
+                    ).order_by('first_name', 'last_name', 'username')
+                    self.fields['assigned_to'].queryset = queryset
+                    self.fields['assigned_to'].empty_label = "---------"
+                else:
+                    self.fields['assigned_to'].queryset = User.objects.none()
         else:
-            # If no project selected, show all Dev/UIUX/BDE users in organization
+            # If no project selected, show all DEV/UIUX/BDE users in organization
             if user and user.organization:
-                self.fields['assigned_to'].queryset = User.objects.filter(
+                queryset = User.objects.filter(
                     organization=user.organization,
-                    role__name__in=['Dev', 'UIUX', 'BDE']
+                    role__name__in=['DEV', 'UIUX', 'BDE']
                 ).order_by('first_name', 'last_name', 'username')
+                self.fields['assigned_to'].queryset = queryset
+                self.fields['assigned_to'].empty_label = "---------"
             else:
-                self.fields['assigned_to'].queryset = User.objects.filter(
-                    role__name__in=['Dev', 'UIUX', 'BDE']
+                queryset = User.objects.filter(
+                    role__name__in=['DEV', 'UIUX', 'BDE']
                 ).order_by('first_name', 'last_name', 'username')
+                self.fields['assigned_to'].queryset = queryset
+                self.fields['assigned_to'].empty_label = "---------"
         
         self.fields['title'].required = True
         self.fields['project'].required = True

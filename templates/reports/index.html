@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Reports - HRMS{% endblock %}
+
+{% block page_header %}
+<div class="mb-6">
+    <h1 class="text-3xl font-bold text-gray-900 flex items-center gap-3 mb-2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        </svg>
+        Reports
+    </h1>
+    <div class="breadcrumbs text-sm">
+        <ul>
+            <li><a href="{% url 'accounts:dashboard' %}" class="text-gray-500 hover:text-gray-700">Dashboard</a></li>
+            <li class="text-gray-400">Reports</li>
+        </ul>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <!-- Attendance Report -->
+        <a href="{% url 'reports:attendance' %}" class="card shadow-xl card-hover">
+            <div class="card-body">
+                <div class="flex items-center gap-4">
+                    <div class="p-4 rounded-lg bg-blue-100">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="card-title text-lg">Attendance Report</h3>
+                        <p class="text-sm text-gray-500">View attendance statistics and summaries</p>
+                    </div>
+                </div>
+            </div>
+        </a>
+        
+        <!-- Payroll Report -->
+        {% if can_generate_reports %}
+        <a href="{% url 'reports:payroll' %}" class="card shadow-xl card-hover">
+            <div class="card-body">
+                <div class="flex items-center gap-4">
+                    <div class="p-4 rounded-lg bg-green-100">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="card-title text-lg">Payroll Report</h3>
+                        <p class="text-sm text-gray-500">View payroll summaries and statistics</p>
+                    </div>
+                </div>
+            </div>
+        </a>
+        {% endif %}
+        
+        <!-- Projects Report -->
+        <a href="{% url 'reports:projects' %}" class="card shadow-xl card-hover">
+            <div class="card-body">
+                <div class="flex items-center gap-4">
+                    <div class="p-4 rounded-lg bg-purple-100">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="card-title text-lg">Projects Report</h3>
+                        <p class="text-sm text-gray-500">View project status and completion metrics</p>
+                    </div>
+                </div>
+            </div>
+        </a>
+        
+        <!-- Leads Report -->
+        {% if can_generate_reports or user.is_bde %}
+        <a href="{% url 'reports:leads' %}" class="card shadow-xl card-hover">
+            <div class="card-body">
+                <div class="flex items-center gap-4">
+                    <div class="p-4 rounded-lg bg-orange-100">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-orange-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="card-title text-lg">Leads Report</h3>
+                        <p class="text-sm text-gray-500">View leads pipeline and conversion metrics</p>
+                    </div>
+                </div>
+            </div>
+        </a>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

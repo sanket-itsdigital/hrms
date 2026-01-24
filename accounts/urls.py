@@ -1,4 +1,4 @@
-from django.urls import path
+from django.urls import path, include
 from django.contrib.auth import views as auth_views
 from django.shortcuts import render
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
@@ -7,25 +7,9 @@ from .views.dashboard import (
     developer_dashboard, uiux_dashboard, bde_dashboard
 )
 from .views.auth import logout_view
-
-# Placeholder views
-def users_view(request):
-    return render(request, 'placeholder.html', {
-        'page_title': 'Users Management',
-        'message': 'Users management feature is under development'
-    })
-
-def profile_view(request):
-    return render(request, 'placeholder.html', {
-        'page_title': 'User Profile',
-        'message': 'User profile feature is under development'
-    })
-
-def settings_view(request):
-    return render(request, 'placeholder.html', {
-        'page_title': 'Settings',
-        'message': 'Settings feature is under development'
-    })
+from .views.users import (
+    list_users, create_user, update_user, delete_user, profile_view, settings_view
+)
 
 app_name = 'accounts'
 
@@ -45,7 +29,10 @@ urlpatterns = [
     path('api/auth/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     
     # User Management
-    path('users/', users_view, name='users'),
+    path('users/', list_users, name='users'),
+    path('users/create/', create_user, name='create-user'),
+    path('users/<int:id>/', update_user, name='update-user'),
+    path('users/<int:id>/delete/', delete_user, name='delete-user'),
     path('profile/', profile_view, name='profile'),
     path('settings/', settings_view, name='settings'),
     

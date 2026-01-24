@@ -4,6 +4,7 @@ from django.contrib import messages
 from django.db.models import Q, Count, Sum
 from django.http import JsonResponse, HttpResponse
 from django.utils import timezone
+from django.utils.timezone import localtime
 from django.core.paginator import Paginator
 from datetime import datetime, timedelta
 import calendar
@@ -110,7 +111,7 @@ def list_attendance(request):
 
 @login_required
 def my_attendance(request):
-    """View own attendance in calendar format"""
+    """View own attendance in calendar format with punch in/out functionality"""
     user = request.user
     
     if not user.organization:
@@ -118,6 +119,47 @@ def my_attendance(request):
         return redirect('accounts:dashboard')
     
     organization = user.organization
+    
+    # Handle punch in/out - use IST date
+    today = localtime(timezone.now()).date()
+    today_attendance, created = Attendance.objects.get_or_create(
+        user=user,
+        organization=organization,
+        date=today,
+        defaults={
+            'status': 'PRESENT',
+            'marked_by': user
+        }
+    )
+    
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        # Get current time in IST
+        current_datetime = localtime(timezone.now())
+        current_time = current_datetime.time()
+        
+        if action == 'punch_in':
+            if not today_attendance.check_in:
+                today_attendance.check_in = current_time
+                today_attendance.status = 'PRESENT'
+                today_attendance.marked_by = user
+                today_attendance.save()
+                messages.success(request, f'Punched in at {current_time.strftime("%H:%M:%S")} IST')
+            else:
+                messages.warning(request, 'You have already punched in today.')
+        
+        elif action == 'punch_out':
+            if today_attendance.check_in and not today_attendance.check_out:
+                today_attendance.check_out = current_time
+                today_attendance.marked_by = user
+                today_attendance.save()
+                messages.success(request, f'Punched out at {current_time.strftime("%H:%M:%S")} IST')
+            elif not today_attendance.check_in:
+                messages.warning(request, 'Please punch in first.')
+            else:
+                messages.warning(request, 'You have already punched out today.')
+        
+        return redirect('attendance:my-attendance')
     
     # Get year and month from request
     year = request.GET.get('year', timezone.now().year)
@@ -137,6 +179,57 @@ def my_attendance(request):
         date__year=year,
         date__month=month
     ).order_by('date')
+    
+    # Refresh today's attendance
+    today_attendance.refresh_from_db()
+    
+    # Convert check_in and check_out times to IST for display
+    # Note: TimeField doesn't store timezone, so old records might be in UTC
+    # We'll convert old UTC times (created before timezone change) to IST
+    check_in_ist = today_attendance.check_in
+    check_out_ist = today_attendance.check_out
+    
+    # If attendance was created today and time seems like UTC (very early morning < 6 AM),
+    # and current IST time is much later, convert it to IST
+    if today_attendance.check_in and today_attendance.date == today:
+        current_ist_time = localtime(timezone.now()).time()
+        # If stored time is before 6 AM but current IST time is after 10 AM,
+        # it's likely an old UTC time that needs conversion
+        if (today_attendance.check_in.hour < 6 and current_ist_time.hour >= 10 and 
+            today_attendance.created_at.date() == today):
+            # Convert UTC to IST (add 5 hours 30 minutes)
+            from datetime import timedelta
+            check_in_dt = datetime.combine(today_attendance.date, today_attendance.check_in)
+            check_in_ist_dt = check_in_dt + timedelta(hours=5, minutes=30)
+            check_in_ist = check_in_ist_dt.time()
+            # Update the record with IST time
+            today_attendance.check_in = check_in_ist
+            today_attendance.save(update_fields=['check_in'])
+    
+    if today_attendance.check_out and today_attendance.date == today:
+        current_ist_time = localtime(timezone.now()).time()
+        # Similar check for check_out
+        if (today_attendance.check_out.hour < 6 and current_ist_time.hour >= 10 and
+            today_attendance.updated_at.date() == today):
+            from datetime import timedelta
+            check_out_dt = datetime.combine(today_attendance.date, today_attendance.check_out)
+            check_out_ist_dt = check_out_dt + timedelta(hours=5, minutes=30)
+            check_out_ist = check_out_ist_dt.time()
+            # Update the record with IST time
+            today_attendance.check_out = check_out_ist
+            today_attendance.save(update_fields=['check_out'])
+    
+    # Calculate work duration if both times are present
+    work_duration = None
+    if check_in_ist and check_out_ist:
+        from datetime import date as date_obj
+        check_in_dt = datetime.combine(date_obj.today(), check_in_ist)
+        check_out_dt = datetime.combine(date_obj.today(), check_out_ist)
+        duration = check_out_dt - check_in_dt
+        total_seconds = int(duration.total_seconds())
+        hours = total_seconds // 3600
+        minutes = (total_seconds % 3600) // 60
+        work_duration = f"{hours}h {minutes}m"
     
     # Create calendar data
     cal = calendar.monthcalendar(year, month)
@@ -195,6 +288,11 @@ def my_attendance(request):
         'half_days': half_days,
         'wfh_days': wfh_days,
         'total_days': total_days,
+        'today_attendance': today_attendance,
+        'today': today,
+        'work_duration': work_duration,
+        'check_in_ist': check_in_ist,
+        'check_out_ist': check_out_ist,
     }
     
     return render(request, 'attendance/my_attendance.html', context)

@@ -1,0 +1,201 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ title }} - HRMS{% endblock %}
+
+{% block page_header %}
+<div class="mb-6">
+    <h1 class="text-3xl font-bold text-gray-900 flex items-center gap-3 mb-2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+        </svg>
+        {{ title }}
+    </h1>
+    <div class="breadcrumbs text-sm">
+        <ul>
+            <li><a href="{% url 'accounts:dashboard' %}" class="text-gray-500 hover:text-gray-700">Dashboard</a></li>
+            <li><a href="{% url 'projects:list' %}" class="text-gray-500 hover:text-gray-700">Projects</a></li>
+            <li><a href="{% url 'projects:detail' project.id %}" class="text-gray-500 hover:text-gray-700">{{ project.name }}</a></li>
+            <li><a href="{% url 'projects:api_documentation' project.id %}" class="text-gray-500 hover:text-gray-700">API Documentation</a></li>
+            <li class="text-gray-400">{{ action }} Endpoint</li>
+        </ul>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <div class="card shadow-xl">
+        <div class="card-body">
+            <form method="post" class="space-y-6">
+                {% csrf_token %}
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text font-medium">Page <span class="text-error">*</span></span>
+                        </label>
+                        {{ form.page }}
+                        {% if form.page.errors %}
+                            <label class="label">
+                                <span class="label-text-alt text-error">{{ form.page.errors }}</span>
+                            </label>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text font-medium">HTTP Method <span class="text-error">*</span></span>
+                        </label>
+                        {{ form.http_method }}
+                        {% if form.http_method.errors %}
+                            <label class="label">
+                                <span class="label-text-alt text-error">{{ form.http_method.errors }}</span>
+                            </label>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text font-medium">Endpoint Name <span class="text-error">*</span></span>
+                    </label>
+                    {{ form.name }}
+                    {% if form.name.errors %}
+                        <label class="label">
+                            <span class="label-text-alt text-error">{{ form.name.errors }}</span>
+                        </label>
+                    {% endif %}
+                </div>
+                
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text font-medium">Endpoint URL <span class="text-error">*</span></span>
+                    </label>
+                    {{ form.endpoint_url }}
+                    {% if form.endpoint_url.errors %}
+                        <label class="label">
+                            <span class="label-text-alt text-error">{{ form.endpoint_url.errors }}</span>
+                        </label>
+                    {% endif %}
+                </div>
+                
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text font-medium">Description</span>
+                    </label>
+                    {{ form.description }}
+                    {% if form.description.errors %}
+                        <label class="label">
+                            <span class="label-text-alt text-error">{{ form.description.errors }}</span>
+                        </label>
+                    {% endif %}
+                </div>
+                
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text font-medium">Request Body (JSON)</span>
+                    </label>
+                    {{ form.request_body }}
+                    {% if form.request_body.errors %}
+                        <label class="label">
+                            <span class="label-text-alt text-error">{{ form.request_body.errors }}</span>
+                        </label>
+                    {% endif %}
+                </div>
+                
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text font-medium">Response Body (JSON)</span>
+                    </label>
+                    {{ form.response_body }}
+                    {% if form.response_body.errors %}
+                        <label class="label">
+                            <span class="label-text-alt text-error">{{ form.response_body.errors }}</span>
+                        </label>
+                    {% endif %}
+                </div>
+                
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text font-medium">Request Headers (JSON)</span>
+                    </label>
+                    {{ form.request_headers }}
+                    {% if form.request_headers.errors %}
+                        <label class="label">
+                            <span class="label-text-alt text-error">{{ form.request_headers.errors }}</span>
+                        </label>
+                    {% endif %}
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text font-medium">Response Status Codes</span>
+                        </label>
+                        {{ form.response_status_codes }}
+                        {% if form.response_status_codes.errors %}
+                            <label class="label">
+                                <span class="label-text-alt text-error">{{ form.response_status_codes.errors }}</span>
+                            </label>
+                        {% endif %}
+                        <label class="label">
+                            <span class="label-text-alt text-gray-500">e.g., 200, 400, 401, 404</span>
+                        </label>
+                    </div>
+                    
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text font-medium">Order</span>
+                        </label>
+                        {{ form.order }}
+                        {% if form.order.errors %}
+                            <label class="label">
+                                <span class="label-text-alt text-error">{{ form.order.errors }}</span>
+                            </label>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="form-control">
+                    <label class="label cursor-pointer justify-start gap-4">
+                        {{ form.authentication_required }}
+                        <span class="label-text font-medium">Authentication Required</span>
+                    </label>
+                    {% if form.authentication_required.errors %}
+                        <label class="label">
+                            <span class="label-text-alt text-error">{{ form.authentication_required.errors }}</span>
+                        </label>
+                    {% endif %}
+                </div>
+                
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text font-medium">Notes</span>
+                    </label>
+                    {{ form.notes }}
+                    {% if form.notes.errors %}
+                        <label class="label">
+                            <span class="label-text-alt text-error">{{ form.notes.errors }}</span>
+                        </label>
+                    {% endif %}
+                    <label class="label">
+                        <span class="label-text-alt text-gray-500">Additional notes, tips, or important information about this API endpoint</span>
+                    </label>
+                </div>
+                
+                <div class="divider"></div>
+                <div class="flex justify-end gap-4">
+                    <a href="{% url 'projects:api_documentation' project.id %}" class="btn btn-ghost">Cancel</a>
+                    <button type="submit" class="btn btn-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                        </svg>
+                        {{ action }} Endpoint
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

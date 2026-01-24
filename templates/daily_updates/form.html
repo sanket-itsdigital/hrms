@@ -1,0 +1,120 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ title }} - HRMS{% endblock %}
+
+{% block page_header %}
+<div class="mb-6">
+    <h1 class="text-3xl font-bold text-gray-900 flex items-center gap-3 mb-2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+        </svg>
+        {{ title }}
+    </h1>
+    <div class="breadcrumbs text-sm">
+        <ul>
+            <li><a href="{% url 'accounts:dashboard' %}" class="text-gray-500 hover:text-gray-700">Dashboard</a></li>
+            <li><a href="{% url 'daily_updates:list' %}" class="text-gray-500 hover:text-gray-700">Daily Updates</a></li>
+            <li class="text-gray-400">{% if daily_update %}Update{% else %}Create{% endif %}</li>
+        </ul>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <div class="card shadow-xl">
+        <div class="card-body">
+            <form method="post" class="space-y-6">
+                {% csrf_token %}
+                
+                <!-- Project -->
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text font-medium">Project <span class="text-error">*</span></span>
+                    </label>
+                    {{ form.project }}
+                    {% if form.project.errors %}
+                        <label class="label">
+                            <span class="label-text-alt text-error">{{ form.project.errors }}</span>
+                        </label>
+                    {% endif %}
+                </div>
+                
+                <!-- Date -->
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text font-medium">Date <span class="text-error">*</span></span>
+                    </label>
+                    {{ form.date }}
+                    {% if form.date.errors %}
+                        <label class="label">
+                            <span class="label-text-alt text-error">{{ form.date.errors }}</span>
+                        </label>
+                    {% endif %}
+                </div>
+                
+                <!-- Description -->
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text font-medium">Description <span class="text-error">*</span></span>
+                    </label>
+                    {{ form.description }}
+                    {% if form.description.errors %}
+                        <label class="label">
+                            <span class="label-text-alt text-error">{{ form.description.errors }}</span>
+                        </label>
+                    {% endif %}
+                    <label class="label">
+                        <span class="label-text-alt text-gray-500">Describe the work you completed today</span>
+                    </label>
+                </div>
+                
+                <!-- Hours Worked -->
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text font-medium">Hours Worked</span>
+                    </label>
+                    {{ form.hours_worked }}
+                    {% if form.hours_worked.errors %}
+                        <label class="label">
+                            <span class="label-text-alt text-error">{{ form.hours_worked.errors }}</span>
+                        </label>
+                    {% endif %}
+                    <label class="label">
+                        <span class="label-text-alt text-gray-500">Number of hours worked (e.g., 8.0, 7.5)</span>
+                    </label>
+                </div>
+                
+                <!-- Figma Link -->
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text font-medium">Figma Link</span>
+                    </label>
+                    {{ form.figma_link }}
+                    {% if form.figma_link.errors %}
+                        <label class="label">
+                            <span class="label-text-alt text-error">{{ form.figma_link.errors }}</span>
+                        </label>
+                    {% endif %}
+                    <label class="label">
+                        <span class="label-text-alt text-gray-500">Link to Figma design (for UI/UX team)</span>
+                    </label>
+                </div>
+                
+                <!-- Form Actions -->
+                <div class="divider"></div>
+                <div class="flex justify-end gap-4">
+                    <a href="{% url 'daily_updates:list' %}" class="btn btn-ghost">Cancel</a>
+                    <button type="submit" class="btn btn-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                        </svg>
+                        {% if daily_update %}Update{% else %}Submit{% endif %} Daily Update
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

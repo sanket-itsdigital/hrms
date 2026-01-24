@@ -1,6 +1,9 @@
 from django import forms
 from django.db.models import Q
-from projects.models import Project, Milestone, Payment
+from projects.models import (
+    Project, Milestone, Payment, ProjectAssignment,
+    APIDocumentationPage, APIEndpoint
+)
 from organizations.models import Organization
 from accounts.models import User
 from django.utils import timezone
@@ -8,6 +11,35 @@ from django.utils import timezone
 
 class ProjectForm(forms.ModelForm):
     """Form for creating and updating projects"""
+    
+    # Team member assignment fields (only for CEO)
+    developers = forms.ModelMultipleChoiceField(
+        queryset=User.objects.none(),
+        required=False,
+        widget=forms.SelectMultiple(attrs={
+            'class': 'select select-bordered w-full',
+            'size': '5'
+        }),
+        help_text="Select developers to assign to this project"
+    )
+    uiux_designers = forms.ModelMultipleChoiceField(
+        queryset=User.objects.none(),
+        required=False,
+        widget=forms.SelectMultiple(attrs={
+            'class': 'select select-bordered w-full',
+            'size': '5'
+        }),
+        help_text="Select UI/UX designers to assign to this project"
+    )
+    bde_users = forms.ModelMultipleChoiceField(
+        queryset=User.objects.none(),
+        required=False,
+        widget=forms.SelectMultiple(attrs={
+            'class': 'select select-bordered w-full',
+            'size': '5'
+        }),
+        help_text="Select BDE users to assign to this project"
+    )
     
     class Meta:
         model = Project
@@ -78,6 +110,7 @@ class ProjectForm(forms.ModelForm):
     
     def __init__(self, *args, **kwargs):
         user = kwargs.pop('user', None)
+        instance = kwargs.get('instance', None)
         super().__init__(*args, **kwargs)
         
         # Filter organizations based on user
@@ -99,6 +132,67 @@ class ProjectForm(forms.ModelForm):
             self.fields['project_manager'].queryset = User.objects.filter(
                 Q(role__name='PM') | Q(role__name='CEO')
             )
+        
+        # Team member assignment fields - only for CEO
+        if user and user.is_ceo:
+            # Get organization for filtering
+            organization = user.organization if user.organization else None
+            
+            # Developers queryset
+            dev_queryset = User.objects.filter(
+                role__name='DEV',
+                is_active=True
+            )
+            if organization:
+                dev_queryset = dev_queryset.filter(organization=organization)
+            self.fields['developers'].queryset = dev_queryset
+            
+            # UIUX designers queryset
+            uiux_queryset = User.objects.filter(
+                role__name='UIUX',
+                is_active=True
+            )
+            if organization:
+                uiux_queryset = uiux_queryset.filter(organization=organization)
+            self.fields['uiux_designers'].queryset = uiux_queryset
+            
+            # BDE users queryset
+            bde_queryset = User.objects.filter(
+                role__name='BDE',
+                is_active=True
+            )
+            if organization:
+                bde_queryset = bde_queryset.filter(organization=organization)
+            self.fields['bde_users'].queryset = bde_queryset
+            
+            # Set initial values for existing project
+            if instance:
+                # Get existing assignments
+                dev_assignments = ProjectAssignment.objects.filter(
+                    project=instance,
+                    role='DEV',
+                    is_active=True
+                ).values_list('user_id', flat=True)
+                self.fields['developers'].initial = list(dev_assignments)
+                
+                uiux_assignments = ProjectAssignment.objects.filter(
+                    project=instance,
+                    role='UIUX',
+                    is_active=True
+                ).values_list('user_id', flat=True)
+                self.fields['uiux_designers'].initial = list(uiux_assignments)
+                
+                bde_assignments = ProjectAssignment.objects.filter(
+                    project=instance,
+                    role='BDE',
+                    is_active=True
+                ).values_list('user_id', flat=True)
+                self.fields['bde_users'].initial = list(bde_assignments)
+        else:
+            # Hide these fields for non-CEO users
+            self.fields['developers'].widget = forms.HiddenInput()
+            self.fields['uiux_designers'].widget = forms.HiddenInput()
+            self.fields['bde_users'].widget = forms.HiddenInput()
         
         # Make organization required
         self.fields['organization'].required = True
@@ -260,3 +354,118 @@ class PaymentForm(forms.ModelForm):
         if amount and paid_amount > amount:
             raise forms.ValidationError("Paid amount cannot be greater than total amount.")
         return paid_amount
+
+
+class APIDocumentationPageForm(forms.ModelForm):
+    """Form for creating and updating API documentation pages"""
+    
+    class Meta:
+        model = APIDocumentationPage
+        fields = ['page_name', 'figma_link', 'description', 'order']
+        widgets = {
+            'page_name': forms.TextInput(attrs={
+                'class': 'input input-bordered w-full',
+                'placeholder': 'e.g., Dashboard, Profile, Settings'
+            }),
+            'figma_link': forms.URLInput(attrs={
+                'class': 'input input-bordered w-full',
+                'placeholder': 'https://figma.com/file/...'
+            }),
+            'description': forms.Textarea(attrs={
+                'class': 'textarea textarea-bordered w-full',
+                'rows': 3,
+                'placeholder': 'Description of the page and its functionality'
+            }),
+            'order': forms.NumberInput(attrs={
+                'class': 'input input-bordered w-full',
+                'min': 0,
+                'step': 1
+            }),
+        }
+    
+    def __init__(self, *args, **kwargs):
+        project = kwargs.pop('project', None)
+        super().__init__(*args, **kwargs)
+        self.fields['page_name'].required = True
+
+
+class APIEndpointForm(forms.ModelForm):
+    """Form for creating and updating API endpoints"""
+    
+    class Meta:
+        model = APIEndpoint
+        fields = [
+            'page', 'name', 'endpoint_url', 'http_method', 'description',
+            'request_body', 'response_body', 'request_headers',
+            'response_status_codes', 'authentication_required', 'notes', 'order'
+        ]
+        widgets = {
+            'page': forms.Select(attrs={
+                'class': 'select select-bordered w-full'
+            }),
+            'name': forms.TextInput(attrs={
+                'class': 'input input-bordered w-full',
+                'placeholder': 'e.g., Get User List, Create User'
+            }),
+            'endpoint_url': forms.TextInput(attrs={
+                'class': 'input input-bordered w-full',
+                'placeholder': '/api/users/list/'
+            }),
+            'http_method': forms.Select(attrs={
+                'class': 'select select-bordered w-full'
+            }),
+            'description': forms.Textarea(attrs={
+                'class': 'textarea textarea-bordered w-full',
+                'rows': 3,
+                'placeholder': 'Description of what this API does'
+            }),
+            'request_body': forms.Textarea(attrs={
+                'class': 'textarea textarea-bordered w-full font-mono text-sm',
+                'rows': 8,
+                'placeholder': '{\n  "key": "value"\n}'
+            }),
+            'response_body': forms.Textarea(attrs={
+                'class': 'textarea textarea-bordered w-full font-mono text-sm',
+                'rows': 8,
+                'placeholder': '{\n  "key": "value"\n}'
+            }),
+            'request_headers': forms.Textarea(attrs={
+                'class': 'textarea textarea-bordered w-full font-mono text-sm',
+                'rows': 4,
+                'placeholder': '{\n  "Authorization": "Bearer token",\n  "Content-Type": "application/json"\n}'
+            }),
+            'response_status_codes': forms.TextInput(attrs={
+                'class': 'input input-bordered w-full',
+                'placeholder': '200, 400, 401, 404'
+            }),
+            'authentication_required': forms.CheckboxInput(attrs={
+                'class': 'checkbox checkbox-primary'
+            }),
+            'notes': forms.Textarea(attrs={
+                'class': 'textarea textarea-bordered w-full',
+                'rows': 4,
+                'placeholder': 'Additional notes, tips, or important information about this API endpoint'
+            }),
+            'order': forms.NumberInput(attrs={
+                'class': 'input input-bordered w-full',
+                'min': 0,
+                'step': 1
+            }),
+        }
+    
+    def __init__(self, *args, **kwargs):
+        project = kwargs.pop('project', None)
+        super().__init__(*args, **kwargs)
+        
+        # Filter pages by project
+        if project:
+            self.fields['page'].queryset = APIDocumentationPage.objects.filter(
+                project=project
+            ).order_by('order', 'page_name')
+        else:
+            self.fields['page'].queryset = APIDocumentationPage.objects.none()
+        
+        self.fields['name'].required = True
+        self.fields['endpoint_url'].required = True
+        self.fields['http_method'].required = True
+        self.fields['page'].required = True

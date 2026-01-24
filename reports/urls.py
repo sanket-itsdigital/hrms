@@ -1,15 +1,15 @@
 from django.urls import path
-from django.shortcuts import render
+from reports.views.web import (
+    reports_index, attendance_report, payroll_report,
+    projects_report, leads_report
+)
 
 app_name = 'reports'
 
-# Placeholder views
-def index_view(request):
-    return render(request, 'placeholder.html', {
-        'page_title': 'Reports',
-        'message': 'Reports feature is under development'
-    })
-
 urlpatterns = [
-    path('', index_view, name='index'),
+    path('', reports_index, name='index'),
+    path('attendance/', attendance_report, name='attendance'),
+    path('payroll/', payroll_report, name='payroll'),
+    path('projects/', projects_report, name='projects'),
+    path('leads/', leads_report, name='leads'),
 ]

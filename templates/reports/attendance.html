@@ -1,0 +1,177 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Attendance Report - HRMS{% endblock %}
+
+{% block page_header %}
+<div class="mb-6">
+    <h1 class="text-3xl font-bold text-gray-900 flex items-center gap-3 mb-2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        </svg>
+        Attendance Report
+    </h1>
+    <div class="breadcrumbs text-sm">
+        <ul>
+            <li><a href="{% url 'accounts:dashboard' %}" class="text-gray-500 hover:text-gray-700">Dashboard</a></li>
+            <li><a href="{% url 'reports:index' %}" class="text-gray-500 hover:text-gray-700">Reports</a></li>
+            <li class="text-gray-400">Attendance</li>
+        </ul>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Filters -->
+    <div class="card mb-6">
+        <div class="card-body p-4">
+            <form method="get" class="flex flex-wrap gap-4 items-end">
+                <div class="form-control min-w-[150px]">
+                    <label class="label">
+                        <span class="label-text text-sm font-medium">Report Type</span>
+                    </label>
+                    <select name="type" class="select select-bordered w-full">
+                        <option value="monthly" {% if report_type == 'monthly' %}selected{% endif %}>Monthly</option>
+                        <option value="yearly" {% if report_type == 'yearly' %}selected{% endif %}>Yearly</option>
+                    </select>
+                </div>
+                
+                {% if users %}
+                <div class="form-control min-w-[180px]">
+                    <label class="label">
+                        <span class="label-text text-sm font-medium">Employee</span>
+                    </label>
+                    <select name="user" class="select select-bordered w-full">
+                        <option value="">All Employees</option>
+                        {% for u in users %}
+                        <option value="{{ u.id }}" {% if selected_user == u.id|stringformat:"s" %}selected{% endif %}>
+                            {{ u.get_full_name|default:u.email }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                {% endif %}
+                
+                {% if report_type == 'monthly' %}
+                <div class="form-control min-w-[150px]">
+                    <label class="label">
+                        <span class="label-text text-sm font-medium">Month</span>
+                    </label>
+                    <select name="month" class="select select-bordered w-full">
+                        {% for i in "123456789101112"|make_list %}
+                        <option value="{{ forloop.counter }}" {% if month == forloop.counter %}selected{% endif %}>
+                            {{ forloop.counter|date:"F" }}
+                        </option>
+                        {% endfor %}
+                        <option value="1" {% if month == 1 %}selected{% endif %}>January</option>
+                        <option value="2" {% if month == 2 %}selected{% endif %}>February</option>
+                        <option value="3" {% if month == 3 %}selected{% endif %}>March</option>
+                        <option value="4" {% if month == 4 %}selected{% endif %}>April</option>
+                        <option value="5" {% if month == 5 %}selected{% endif %}>May</option>
+                        <option value="6" {% if month == 6 %}selected{% endif %}>June</option>
+                        <option value="7" {% if month == 7 %}selected{% endif %}>July</option>
+                        <option value="8" {% if month == 8 %}selected{% endif %}>August</option>
+                        <option value="9" {% if month == 9 %}selected{% endif %}>September</option>
+                        <option value="10" {% if month == 10 %}selected{% endif %}>October</option>
+                        <option value="11" {% if month == 11 %}selected{% endif %}>November</option>
+                        <option value="12" {% if month == 12 %}selected{% endif %}>December</option>
+                    </select>
+                </div>
+                {% endif %}
+                
+                <div class="form-control min-w-[120px]">
+                    <label class="label">
+                        <span class="label-text text-sm font-medium">Year</span>
+                    </label>
+                    <input type="number" name="year" value="{{ year }}" placeholder="Year" min="2020" max="2030" class="input input-bordered w-full" />
+                </div>
+                
+                <div class="form-control">
+                    <button type="submit" class="btn btn-primary">Generate Report</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Statistics -->
+    <div class="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-7 gap-4 mb-6">
+        <div class="stat stat-card gradient-primary text-white rounded-xl">
+            <div class="stat-title text-white/90 font-semibold">Total Days</div>
+            <div class="stat-value text-3xl font-bold text-white">{{ total_days }}</div>
+        </div>
+        
+        <div class="stat stat-card gradient-success text-white rounded-xl">
+            <div class="stat-title text-white/90 font-semibold">Present</div>
+            <div class="stat-value text-3xl font-bold text-white">{{ present_days }}</div>
+        </div>
+        
+        <div class="stat stat-card gradient-error text-white rounded-xl">
+            <div class="stat-title text-white/90 font-semibold">Absent</div>
+            <div class="stat-value text-3xl font-bold text-white">{{ absent_days }}</div>
+        </div>
+        
+        <div class="stat stat-card gradient-warning text-white rounded-xl">
+            <div class="stat-title text-white/90 font-semibold">On Leave</div>
+            <div class="stat-value text-3xl font-bold text-white">{{ leave_days }}</div>
+        </div>
+        
+        <div class="stat stat-card gradient-info text-white rounded-xl">
+            <div class="stat-title text-white/90 font-semibold">Late</div>
+            <div class="stat-value text-3xl font-bold text-white">{{ late_days }}</div>
+        </div>
+        
+        <div class="stat stat-card bg-orange-600 text-white rounded-xl">
+            <div class="stat-title text-white/90 font-semibold">Half Day</div>
+            <div class="stat-value text-3xl font-bold text-white">{{ half_days }}</div>
+        </div>
+        
+        <div class="stat stat-card bg-teal-600 text-white rounded-xl">
+            <div class="stat-title text-white/90 font-semibold">WFH</div>
+            <div class="stat-value text-3xl font-bold text-white">{{ wfh_days }}</div>
+        </div>
+    </div>
+    
+    <!-- User Statistics Table -->
+    {% if user_stats %}
+    <div class="card">
+        <div class="card-body">
+            <h2 class="text-xl font-semibold mb-4">Employee-wise Statistics</h2>
+            <div class="overflow-x-auto">
+                <table class="table table-zebra w-full">
+                    <thead>
+                        <tr>
+                            <th>Employee</th>
+                            <th>Total</th>
+                            <th>Present</th>
+                            <th>Absent</th>
+                            <th>Leave</th>
+                            <th>Late</th>
+                            <th>Half Day</th>
+                            <th>WFH</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for stat in user_stats %}
+                        <tr>
+                            <td>
+                                <div class="font-medium">{{ stat.user__first_name }} {{ stat.user__last_name }}</div>
+                                <div class="text-xs text-gray-500">{{ stat.user__email }}</div>
+                            </td>
+                            <td><span class="font-bold">{{ stat.total }}</span></td>
+                            <td><span class="text-green-600 font-semibold">{{ stat.present }}</span></td>
+                            <td><span class="text-red-600 font-semibold">{{ stat.absent }}</span></td>
+                            <td><span class="text-orange-600 font-semibold">{{ stat.leave }}</span></td>
+                            <td><span class="text-blue-600 font-semibold">{{ stat.late }}</span></td>
+                            <td><span class="text-orange-600 font-semibold">{{ stat.half_day }}</span></td>
+                            <td><span class="text-teal-600 font-semibold">{{ stat.wfh }}</span></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

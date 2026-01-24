@@ -59,6 +59,11 @@ class Payroll(models.Model):
         self.net_salary = self.gross_salary - self.deductions - self.attendance_deduction
         return self.net_salary
 
+    def get_month_display(self):
+        """Get month name"""
+        import calendar
+        return calendar.month_name[self.month]
+    
     def save(self, *args, **kwargs):
         self.calculate_net_salary()
         super().save(*args, **kwargs)

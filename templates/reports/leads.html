@@ -1,0 +1,178 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Leads Report - HRMS{% endblock %}
+
+{% block page_header %}
+<div class="mb-6">
+    <h1 class="text-3xl font-bold text-gray-900 flex items-center gap-3 mb-2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        </svg>
+        Leads Report
+    </h1>
+    <div class="breadcrumbs text-sm">
+        <ul>
+            <li><a href="{% url 'accounts:dashboard' %}" class="text-gray-500 hover:text-gray-700">Dashboard</a></li>
+            <li><a href="{% url 'reports:index' %}" class="text-gray-500 hover:text-gray-700">Reports</a></li>
+            <li class="text-gray-400">Leads</li>
+        </ul>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Statistics -->
+    <div class="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-8 gap-4 mb-6">
+        <div class="stat stat-card gradient-primary text-white rounded-xl">
+            <div class="stat-title text-white/90 font-semibold">Total Leads</div>
+            <div class="stat-value text-3xl font-bold text-white">{{ total_leads }}</div>
+        </div>
+        
+        <div class="stat stat-card bg-blue-600 text-white rounded-xl">
+            <div class="stat-title text-white/90 font-semibold">New</div>
+            <div class="stat-value text-3xl font-bold text-white">{{ new_count }}</div>
+        </div>
+        
+        <div class="stat stat-card bg-cyan-600 text-white rounded-xl">
+            <div class="stat-title text-white/90 font-semibold">Contacted</div>
+            <div class="stat-value text-3xl font-bold text-white">{{ contacted_count }}</div>
+        </div>
+        
+        <div class="stat stat-card bg-indigo-600 text-white rounded-xl">
+            <div class="stat-title text-white/90 font-semibold">Proposal Sent</div>
+            <div class="stat-value text-3xl font-bold text-white">{{ proposal_sent_count }}</div>
+        </div>
+        
+        <div class="stat stat-card bg-purple-600 text-white rounded-xl">
+            <div class="stat-title text-white/90 font-semibold">Negotiation</div>
+            <div class="stat-value text-3xl font-bold text-white">{{ negotiation_count }}</div>
+        </div>
+        
+        <div class="stat stat-card gradient-success text-white rounded-xl">
+            <div class="stat-title text-white/90 font-semibold">Won</div>
+            <div class="stat-value text-3xl font-bold text-white">{{ won_count }}</div>
+        </div>
+        
+        <div class="stat stat-card gradient-error text-white rounded-xl">
+            <div class="stat-title text-white/90 font-semibold">Lost</div>
+            <div class="stat-value text-3xl font-bold text-white">{{ lost_count }}</div>
+        </div>
+        
+        <div class="stat stat-card bg-gradient-to-br from-green-600 to-green-700 text-white rounded-xl">
+            <div class="stat-title text-white/90 font-semibold">Conversion Rate</div>
+            <div class="stat-value text-3xl font-bold text-white">{{ conversion_rate|floatformat:1 }}%</div>
+        </div>
+    </div>
+    
+    <!-- Revenue Statistics -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+        <div class="card">
+            <div class="card-body">
+                <h3 class="text-lg font-semibold mb-2">Total Revenue (Closed Won)</h3>
+                <p class="text-3xl font-bold text-green-600">₹{{ total_revenue|floatformat:0 }}</p>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-body">
+                <h3 class="text-lg font-semibold mb-2">Pipeline Revenue</h3>
+                <p class="text-3xl font-bold text-blue-600">₹{{ pipeline_revenue|floatformat:0 }}</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Stage Statistics -->
+    {% if stage_stats %}
+    <div class="card">
+        <div class="card-body">
+            <h2 class="text-xl font-semibold mb-4">Leads by Stage</h2>
+            <div class="overflow-x-auto">
+                <table class="table table-zebra w-full">
+                    <thead>
+                        <tr>
+                            <th>Stage</th>
+                            <th>Count</th>
+                            <th>Total Revenue</th>
+                            <th>Percentage</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for stat in stage_stats %}
+                        <tr>
+                            <td>
+                                <span class="badge badge-info">{{ stat.stage }}</span>
+                            </td>
+                            <td><span class="font-bold">{{ stat.count }}</span></td>
+                            <td>
+                                {% if stat.total_revenue %}
+                                    <span class="font-bold">₹{{ stat.total_revenue|floatformat:0 }}</span>
+                                {% else %}
+                                    <span class="text-gray-400">-</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="flex items-center gap-2">
+                                    <progress class="progress progress-primary w-32" value="{{ stat.count }}" max="{{ total_leads }}"></progress>
+                                    <span class="text-sm">{% widthratio stat.count total_leads 100 %}%</span>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- User Statistics -->
+    {% if user_stats %}
+    <div class="card">
+        <div class="card-body">
+            <h2 class="text-xl font-semibold mb-4">Performance by Assignee</h2>
+            <div class="overflow-x-auto">
+                <table class="table table-zebra w-full">
+                    <thead>
+                        <tr>
+                            <th>Assigned To</th>
+                            <th>Total Leads</th>
+                            <th>Won</th>
+                            <th>Revenue</th>
+                            <th>Win Rate</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for stat in user_stats %}
+                        <tr>
+                            <td>
+                                <div class="font-medium">{{ stat.assigned_to__first_name }} {{ stat.assigned_to__last_name }}</div>
+                                <div class="text-xs text-gray-500">{{ stat.assigned_to__email }}</div>
+                            </td>
+                            <td><span class="font-bold">{{ stat.count }}</span></td>
+                            <td><span class="text-green-600 font-semibold">{{ stat.won }}</span></td>
+                            <td>
+                                {% if stat.revenue %}
+                                    <span class="font-bold text-green-600">₹{{ stat.revenue|floatformat:0 }}</span>
+                                {% else %}
+                                    <span class="text-gray-400">-</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if stat.count > 0 %}
+                                    <span class="font-semibold">{% widthratio stat.won stat.count 100 %}%</span>
+                                {% else %}
+                                    <span class="text-gray-400">-</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

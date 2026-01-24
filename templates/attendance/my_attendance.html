@@ -1,0 +1,339 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}My Attendance - HRMS{% endblock %}
+
+{% block page_header %}
+<div class="mb-6">
+    <h1 class="text-3xl font-bold text-gray-900 flex items-center gap-3 mb-2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+        </svg>
+        My Attendance
+    </h1>
+    <div class="breadcrumbs text-sm">
+        <ul>
+            <li><a href="{% url 'accounts:dashboard' %}" class="text-gray-500 hover:text-gray-700">Dashboard</a></li>
+            <li class="text-gray-400">My Attendance</li>
+        </ul>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto">
+    <!-- Statistics Cards -->
+    <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4 mb-6">
+        <div class="stat stat-card gradient-primary text-white rounded-xl">
+            <div class="stat-title text-white/90 font-semibold text-xs">Total Days</div>
+            <div class="stat-value text-2xl font-bold text-white">{{ total_days }}</div>
+        </div>
+        
+        <div class="stat stat-card gradient-success text-white rounded-xl">
+            <div class="stat-title text-white/90 font-semibold text-xs">Present</div>
+            <div class="stat-value text-2xl font-bold text-white">{{ present_days }}</div>
+        </div>
+        
+        <div class="stat stat-card gradient-error text-white rounded-xl">
+            <div class="stat-title text-white/90 font-semibold text-xs">Absent</div>
+            <div class="stat-value text-2xl font-bold text-white">{{ absent_days }}</div>
+        </div>
+        
+        <div class="stat stat-card gradient-warning text-white rounded-xl">
+            <div class="stat-title text-white/90 font-semibold text-xs">On Leave</div>
+            <div class="stat-value text-2xl font-bold text-white">{{ leave_days }}</div>
+        </div>
+        
+        <div class="stat stat-card gradient-info text-white rounded-xl">
+            <div class="stat-title text-white/90 font-semibold text-xs">Late</div>
+            <div class="stat-value text-2xl font-bold text-white">{{ late_days }}</div>
+        </div>
+        
+        <div class="stat stat-card bg-gradient-to-br from-purple-500 to-pink-600 text-white rounded-xl">
+            <div class="stat-title text-white/90 font-semibold text-xs">Half Day</div>
+            <div class="stat-value text-2xl font-bold text-white">{{ half_days }}</div>
+        </div>
+        
+        <div class="stat stat-card bg-gradient-to-br from-teal-500 to-cyan-600 text-white rounded-xl">
+            <div class="stat-title text-white/90 font-semibold text-xs">WFH</div>
+            <div class="stat-value text-2xl font-bold text-white">{{ wfh_days }}</div>
+        </div>
+    </div>
+    
+    <!-- Punch In/Out Card -->
+    <div class="card shadow-xl mb-6 bg-gradient-to-br from-purple-50 to-pink-50 border-2 border-purple-200">
+        <div class="card-body">
+            <h2 class="card-title text-2xl mb-4">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Today's Attendance - {{ today|date:"F d, Y" }}
+            </h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Punch In Section -->
+                <div class="text-center">
+                    <div class="mb-4">
+                        <p class="text-sm text-gray-600 mb-2">Punch In (IST)</p>
+                        {% if check_in_ist %}
+                            <div class="badge badge-success badge-lg p-4 text-lg">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                </svg>
+                                {{ check_in_ist|time:"H:i:s" }}
+                            </div>
+                        {% else %}
+                            <div class="badge badge-ghost badge-lg p-4 text-lg">Not Punched In</div>
+                        {% endif %}
+                    </div>
+                    <form method="post" class="inline">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="punch_in">
+                        <button type="submit" 
+                                class="btn btn-success btn-lg {% if check_in_ist %}btn-disabled{% endif %}"
+                                {% if check_in_ist %}disabled{% endif %}>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                            </svg>
+                            Punch In
+                        </button>
+                    </form>
+                </div>
+                
+                <!-- Current Time Display -->
+                <div class="text-center flex items-center justify-center">
+                    <div>
+                        <p class="text-sm text-gray-600 mb-2">Current Time (IST)</p>
+                        <div class="text-3xl font-bold text-purple-600" id="current-time">
+                            <script>
+                                function updateTime() {
+                                    // Get current time in IST using Intl API
+                                    const now = new Date();
+                                    const istTime = new Intl.DateTimeFormat('en-US', {
+                                        timeZone: 'Asia/Kolkata',
+                                        hour12: false,
+                                        hour: '2-digit',
+                                        minute: '2-digit',
+                                        second: '2-digit'
+                                    }).formatToParts(now);
+                                    
+                                    const hours = istTime.find(part => part.type === 'hour').value;
+                                    const minutes = istTime.find(part => part.type === 'minute').value;
+                                    const seconds = istTime.find(part => part.type === 'second').value;
+                                    const timeStr = `${hours}:${minutes}:${seconds}`;
+                                    document.getElementById('current-time').textContent = timeStr;
+                                }
+                                updateTime();
+                                setInterval(updateTime, 1000);
+                            </script>
+                        </div>
+                        <p class="text-xs text-gray-500 mt-1">Indian Standard Time</p>
+                    </div>
+                </div>
+                
+                <!-- Punch Out Section -->
+                <div class="text-center">
+                    <div class="mb-4">
+                        <p class="text-sm text-gray-600 mb-2">Punch Out (IST)</p>
+                        {% if check_out_ist %}
+                            <div class="badge badge-error badge-lg p-4 text-lg">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                                {{ check_out_ist|time:"H:i:s" }}
+                            </div>
+                        {% else %}
+                            <div class="badge badge-ghost badge-lg p-4 text-lg">Not Punched Out</div>
+                        {% endif %}
+                    </div>
+                    <form method="post" class="inline">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="punch_out">
+                        <button type="submit" 
+                                class="btn btn-error btn-lg {% if not check_in_ist or check_out_ist %}btn-disabled{% endif %}"
+                                {% if not check_in_ist or check_out_ist %}disabled{% endif %}>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                            </svg>
+                            Punch Out
+                        </button>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Work Duration (if both times are present) -->
+            {% if work_duration %}
+            <div class="divider"></div>
+            <div class="text-center">
+                <p class="text-sm text-gray-600 mb-2">Total Work Duration</p>
+                <p class="text-2xl font-bold text-purple-600">{{ work_duration }}</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Calendar Navigation -->
+    <div class="card mb-6">
+        <div class="card-body">
+            <div class="flex justify-between items-center">
+                <a href="?year={{ prev_year }}&month={{ prev_month }}" class="btn btn-ghost">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                    </svg>
+                    Previous
+                </a>
+                
+                <h2 class="text-2xl font-bold text-gray-900">{{ month_name }} {{ year }}</h2>
+                
+                <a href="?year={{ next_year }}&month={{ next_month }}" class="btn btn-ghost">
+                    Next
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                    </svg>
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Calendar -->
+    <div class="card">
+        <div class="card-body p-4">
+            <div class="overflow-x-auto">
+                <table class="table w-full">
+                    <thead>
+                        <tr>
+                            <th class="text-center font-semibold">Sun</th>
+                            <th class="text-center font-semibold">Mon</th>
+                            <th class="text-center font-semibold">Tue</th>
+                            <th class="text-center font-semibold">Wed</th>
+                            <th class="text-center font-semibold">Thu</th>
+                            <th class="text-center font-semibold">Fri</th>
+                            <th class="text-center font-semibold">Sat</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for week in calendar_data %}
+                        <tr>
+                            {% for day_data in week %}
+                                {% if day_data %}
+                                    <td class="text-center align-top p-2">
+                                        <div class="flex flex-col items-center">
+                                            <span class="text-sm font-medium mb-1">{{ day_data.day }}</span>
+                                            {% if day_data.attendance %}
+                                                {% if day_data.attendance.status == 'PRESENT' %}
+                                                    <div class="badge badge-success badge-sm w-full justify-center">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                                        </svg>
+                                                        Present
+                                                    </div>
+                                                {% elif day_data.attendance.status == 'ABSENT' %}
+                                                    <div class="badge badge-error badge-sm w-full justify-center">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                                        </svg>
+                                                        Absent
+                                                    </div>
+                                                {% elif day_data.attendance.status == 'LEAVE' %}
+                                                    <div class="badge badge-warning badge-sm w-full justify-center">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                        </svg>
+                                                        Leave
+                                                    </div>
+                                                {% elif day_data.attendance.status == 'LATE' %}
+                                                    <div class="badge badge-info badge-sm w-full justify-center">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                        </svg>
+                                                        Late
+                                                    </div>
+                                                {% elif day_data.attendance.status == 'HALF_DAY' %}
+                                                    <div class="badge bg-purple-500 text-white badge-sm w-full justify-center">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                        </svg>
+                                                        Half Day
+                                                    </div>
+                                                {% elif day_data.attendance.status == 'WORK_FROM_HOME' %}
+                                                    <div class="badge bg-teal-500 text-white badge-sm w-full justify-center">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                                                        </svg>
+                                                        WFH
+                                                    </div>
+                                                {% endif %}
+                                                
+                                                {% if day_data.attendance.check_in %}
+                                                    <div class="text-xs text-gray-500 mt-1">
+                                                        <div>In: {{ day_data.attendance.check_in|time:"H:i" }}</div>
+                                                        {% if day_data.attendance.check_out %}
+                                                            <div>Out: {{ day_data.attendance.check_out|time:"H:i" }}</div>
+                                                        {% endif %}
+                                                    </div>
+                                                {% endif %}
+                                                
+                                                {% if day_data.attendance.notes %}
+                                                    <div class="tooltip tooltip-top" data-tip="{{ day_data.attendance.notes }}">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400 mt-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                        </svg>
+                                                    </div>
+                                                {% endif %}
+                                            {% else %}
+                                                <div class="badge badge-ghost badge-sm w-full justify-center opacity-50">
+                                                    No Record
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                {% else %}
+                                    <td class="p-2"></td>
+                                {% endif %}
+                            {% endfor %}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Legend -->
+    <div class="card mt-6">
+        <div class="card-body">
+            <h3 class="text-lg font-semibold mb-4">Legend</h3>
+            <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
+                <div class="flex items-center gap-2">
+                    <div class="badge badge-success badge-sm">Present</div>
+                    <span class="text-sm text-gray-600">Present at office</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <div class="badge badge-error badge-sm">Absent</div>
+                    <span class="text-sm text-gray-600">Absent</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <div class="badge badge-warning badge-sm">Leave</div>
+                    <span class="text-sm text-gray-600">On leave</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <div class="badge badge-info badge-sm">Late</div>
+                    <span class="text-sm text-gray-600">Late arrival</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <div class="badge bg-purple-500 text-white badge-sm">Half Day</div>
+                    <span class="text-sm text-gray-600">Half day</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <div class="badge bg-teal-500 text-white badge-sm">WFH</div>
+                    <span class="text-sm text-gray-600">Work from home</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <div class="badge badge-ghost badge-sm">No Record</div>
+                    <span class="text-sm text-gray-600">No attendance record</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

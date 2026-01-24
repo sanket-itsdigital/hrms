@@ -104,7 +104,6 @@ TEMPLATES = [
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
                 "django.template.context_processors.media",
-                "accounts.context_processors.notifications_context",
             ],
         },
     },
@@ -161,7 +160,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = "en-us"
 
-TIME_ZONE = "UTC"
+TIME_ZONE = "Asia/Kolkata"  # Indian Standard Time (IST)
 
 USE_I18N = True
 
@@ -251,7 +250,7 @@ CELERY_RESULT_BACKEND = config(
 CELERY_ACCEPT_CONTENT = ["json"]
 CELERY_TASK_SERIALIZER = "json"
 CELERY_RESULT_SERIALIZER = "json"
-CELERY_TIMEZONE = TIME_ZONE
+CELERY_TIMEZONE = "Asia/Kolkata"  # Indian Standard Time (IST)
 
 # Swagger/OpenAPI Configuration
 SWAGGER_SETTINGS = {

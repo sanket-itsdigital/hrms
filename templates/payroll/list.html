@@ -1,0 +1,290 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Payroll - HRMS{% endblock %}
+
+{% block page_header %}
+<div class="mb-6">
+    <div class="flex justify-between items-center mb-4">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-900 flex items-center gap-3 mb-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Payroll Management
+            </h1>
+            <div class="breadcrumbs text-sm">
+                <ul>
+                    <li><a href="{% url 'accounts:dashboard' %}" class="text-gray-500 hover:text-gray-700">Dashboard</a></li>
+                    <li class="text-gray-400">Payroll</li>
+                </ul>
+            </div>
+        </div>
+        {% if can_edit %}
+        <a href="{% url 'payroll:create' %}" class="btn btn-primary">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            </svg>
+            Create Payroll
+        </a>
+        {% endif %}
+    </div>
+    
+    <!-- Statistics Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
+        <div class="stat stat-card gradient-primary text-white rounded-xl">
+            <div class="stat-title text-white/90 font-semibold">Total Records</div>
+            <div class="stat-value text-3xl font-bold text-white">{{ total_payrolls }}</div>
+        </div>
+        
+        <div class="stat stat-card bg-gray-600 text-white rounded-xl">
+            <div class="stat-title text-white/90 font-semibold">Draft</div>
+            <div class="stat-value text-3xl font-bold text-white">{{ draft_count }}</div>
+        </div>
+        
+        <div class="stat stat-card gradient-info text-white rounded-xl">
+            <div class="stat-title text-white/90 font-semibold">Processed</div>
+            <div class="stat-value text-3xl font-bold text-white">{{ processed_count }}</div>
+        </div>
+        
+        <div class="stat stat-card gradient-success text-white rounded-xl">
+            <div class="stat-title text-white/90 font-semibold">Paid</div>
+            <div class="stat-value text-3xl font-bold text-white">{{ paid_count }}</div>
+        </div>
+        
+        <div class="stat stat-card bg-gradient-to-br from-green-600 to-green-700 text-white rounded-xl">
+            <div class="stat-title text-white/90 font-semibold">Total Paid</div>
+            <div class="stat-value text-2xl font-bold text-white">₹{{ total_net_salary|floatformat:0 }}</div>
+        </div>
+    </div>
+    
+    <!-- Filters -->
+    <div class="card mb-6">
+        <div class="card-body p-4">
+            <form method="get" class="flex flex-wrap gap-4 items-end">
+                <div class="form-control flex-1 min-w-[200px]">
+                    <label class="label">
+                        <span class="label-text text-sm font-medium">Search</span>
+                    </label>
+                    <input type="text" name="search" value="{{ search_query }}" placeholder="Search by name, email..." class="input input-bordered w-full" />
+                </div>
+                
+                <div class="form-control min-w-[150px]">
+                    <label class="label">
+                        <span class="label-text text-sm font-medium">Status</span>
+                    </label>
+                    <select name="status" class="select select-bordered w-full">
+                        <option value="">All Status</option>
+                        <option value="DRAFT" {% if status_filter == 'DRAFT' %}selected{% endif %}>Draft</option>
+                        <option value="PROCESSED" {% if status_filter == 'PROCESSED' %}selected{% endif %}>Processed</option>
+                        <option value="PAID" {% if status_filter == 'PAID' %}selected{% endif %}>Paid</option>
+                        <option value="CANCELLED" {% if status_filter == 'CANCELLED' %}selected{% endif %}>Cancelled</option>
+                    </select>
+                </div>
+                
+                {% if users %}
+                <div class="form-control min-w-[180px]">
+                    <label class="label">
+                        <span class="label-text text-sm font-medium">Employee</span>
+                    </label>
+                    <select name="user" class="select select-bordered w-full">
+                        <option value="">All Employees</option>
+                        {% for u in users %}
+                        <option value="{{ u.id }}" {% if user_filter == u.id|stringformat:"s" %}selected{% endif %}>
+                            {{ u.get_full_name|default:u.email }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                {% endif %}
+                
+                <div class="form-control min-w-[150px]">
+                    <label class="label">
+                        <span class="label-text text-sm font-medium">Month</span>
+                    </label>
+                    <select name="month" class="select select-bordered w-full">
+                        <option value="">All Months</option>
+                        <option value="1" {% if month_filter == '1' %}selected{% endif %}>January</option>
+                        <option value="2" {% if month_filter == '2' %}selected{% endif %}>February</option>
+                        <option value="3" {% if month_filter == '3' %}selected{% endif %}>March</option>
+                        <option value="4" {% if month_filter == '4' %}selected{% endif %}>April</option>
+                        <option value="5" {% if month_filter == '5' %}selected{% endif %}>May</option>
+                        <option value="6" {% if month_filter == '6' %}selected{% endif %}>June</option>
+                        <option value="7" {% if month_filter == '7' %}selected{% endif %}>July</option>
+                        <option value="8" {% if month_filter == '8' %}selected{% endif %}>August</option>
+                        <option value="9" {% if month_filter == '9' %}selected{% endif %}>September</option>
+                        <option value="10" {% if month_filter == '10' %}selected{% endif %}>October</option>
+                        <option value="11" {% if month_filter == '11' %}selected{% endif %}>November</option>
+                        <option value="12" {% if month_filter == '12' %}selected{% endif %}>December</option>
+                    </select>
+                </div>
+                
+                <div class="form-control min-w-[120px]">
+                    <label class="label">
+                        <span class="label-text text-sm font-medium">Year</span>
+                    </label>
+                    <input type="number" name="year" value="{{ year_filter }}" placeholder="Year" min="2020" max="2030" class="input input-bordered w-full" />
+                </div>
+                
+                <div class="form-control">
+                    <button type="submit" class="btn btn-primary">Filter</button>
+                </div>
+                
+                {% if search_query or status_filter or user_filter or month_filter or year_filter %}
+                <div class="form-control">
+                    <a href="{% url 'payroll:list' %}" class="btn btn-ghost">Clear</a>
+                </div>
+                {% endif %}
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Payroll Table -->
+    {% if payrolls %}
+    <div class="card">
+        <div class="card-body p-0">
+            <div class="overflow-x-auto">
+                <table class="table table-zebra w-full">
+                    <thead>
+                        <tr>
+                            <th>Employee</th>
+                            <th>Period</th>
+                            <th>Base Salary</th>
+                            <th>Bonuses</th>
+                            <th>Deductions</th>
+                            <th>Net Salary</th>
+                            <th>Status</th>
+                            <th>Processed By</th>
+                            {% if can_edit %}
+                            <th>Actions</th>
+                            {% endif %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for payroll in payrolls %}
+                        <tr>
+                            <td>
+                                <div class="font-medium">{{ payroll.user.get_full_name|default:payroll.user.email }}</div>
+                                <div class="text-xs text-gray-500">{{ payroll.user.email }}</div>
+                            </td>
+                            <td>
+                                <div class="font-semibold">{{ payroll.get_month_display }} {{ payroll.year }}</div>
+                            </td>
+                            <td>
+                                <span class="font-semibold">₹{{ payroll.base_salary|floatformat:2 }}</span>
+                            </td>
+                            <td>
+                                <span class="text-green-600 font-semibold">+₹{{ payroll.bonuses|floatformat:2 }}</span>
+                            </td>
+                            <td>
+                                <span class="text-red-600 font-semibold">-₹{{ payroll.deductions|floatformat:2 }}</span>
+                            </td>
+                            <td>
+                                <span class="font-bold text-lg">₹{{ payroll.net_salary|floatformat:2 }}</span>
+                            </td>
+                            <td>
+                                {% if can_edit %}
+                                    <form method="post" action="{% url 'payroll:change-status' payroll.id %}" class="inline" onchange="this.submit()">
+                                        {% csrf_token %}
+                                        <select name="status" class="select select-bordered select-sm w-full max-w-xs">
+                                            <option value="DRAFT" {% if payroll.status == 'DRAFT' %}selected{% endif %}>Draft</option>
+                                            <option value="PROCESSED" {% if payroll.status == 'PROCESSED' %}selected{% endif %}>Processed</option>
+                                            <option value="PAID" {% if payroll.status == 'PAID' %}selected{% endif %}>Paid</option>
+                                            <option value="CANCELLED" {% if payroll.status == 'CANCELLED' %}selected{% endif %}>Cancelled</option>
+                                        </select>
+                                    </form>
+                                {% else %}
+                                    {% if payroll.status == 'DRAFT' %}
+                                        <span class="badge badge-neutral">{{ payroll.get_status_display }}</span>
+                                    {% elif payroll.status == 'PROCESSED' %}
+                                        <span class="badge badge-info">{{ payroll.get_status_display }}</span>
+                                    {% elif payroll.status == 'PAID' %}
+                                        <span class="badge badge-success">{{ payroll.get_status_display }}</span>
+                                    {% elif payroll.status == 'CANCELLED' %}
+                                        <span class="badge badge-error">{{ payroll.get_status_display }}</span>
+                                    {% endif %}
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if payroll.processed_by %}
+                                    <div class="text-sm">{{ payroll.processed_by.get_full_name|default:payroll.processed_by.email }}</div>
+                                    <div class="text-xs text-gray-500">{{ payroll.processed_at|date:"M d, Y" }}</div>
+                                {% else %}
+                                    <span class="text-gray-400">-</span>
+                                {% endif %}
+                            </td>
+                            {% if can_edit %}
+                            <td>
+                                <div class="flex gap-2">
+                                    {% if payroll.status == 'DRAFT' %}
+                                    <a href="{% url 'payroll:update' payroll.id %}" class="btn btn-sm btn-outline btn-secondary" title="Edit">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                        </svg>
+                                    </a>
+                                    <a href="{% url 'payroll:process' payroll.id %}" class="btn btn-sm btn-info" title="Process">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                                        </svg>
+                                    </a>
+                                    {% elif payroll.status == 'PROCESSED' %}
+                                    <a href="{% url 'payroll:mark-paid' payroll.id %}" class="btn btn-sm btn-success" title="Mark as Paid">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                        </svg>
+                                    </a>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            {% endif %}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Pagination -->
+    {% if payrolls.has_other_pages %}
+    <div class="flex justify-center mt-6">
+        <div class="join">
+            {% if payrolls.has_previous %}
+                <a href="?page={{ payrolls.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if user_filter %}&user={{ user_filter }}{% endif %}{% if month_filter %}&month={{ month_filter }}{% endif %}{% if year_filter %}&year={{ year_filter }}{% endif %}" class="join-item btn">«</a>
+            {% endif %}
+            
+            <span class="join-item btn btn-active">{{ payrolls.number }} of {{ payrolls.paginator.num_pages }}</span>
+            
+            {% if payrolls.has_next %}
+                <a href="?page={{ payrolls.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if user_filter %}&user={{ user_filter }}{% endif %}{% if month_filter %}&month={{ month_filter }}{% endif %}{% if year_filter %}&year={{ year_filter }}{% endif %}" class="join-item btn">»</a>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+    
+    {% else %}
+    <div class="card">
+        <div class="card-body text-center py-12">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-24 w-24 mx-auto mb-6 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <h3 class="text-2xl font-bold mb-4 text-gray-700">No Payroll Records Found</h3>
+            <p class="text-gray-500 mb-6">
+                {% if search_query or status_filter or user_filter or month_filter or year_filter %}
+                    No payroll records match your filters. Try adjusting your search criteria.
+                {% else %}
+                    No payroll records have been created yet.
+                {% endif %}
+            </p>
+            {% if can_edit %}
+            <a href="{% url 'payroll:create' %}" class="btn btn-primary">Create First Record</a>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

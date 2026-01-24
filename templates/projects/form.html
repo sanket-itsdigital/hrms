@@ -163,6 +163,69 @@
                     </div>
                 </div>
                 
+                <!-- Team Member Assignments (CEO only) -->
+                {% if user.is_ceo %}
+                <div class="divider"></div>
+                <div class="space-y-4">
+                    <h2 class="text-xl font-semibold text-gray-800 mb-4">Team Member Assignments</h2>
+                    <p class="text-sm text-gray-600 mb-4">Assign developers, UI/UX designers, and BDE users to this project.</p>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text font-medium">Developers</span>
+                            </label>
+                            {{ form.developers }}
+                            {% if form.developers.errors %}
+                                <label class="label">
+                                    <span class="label-text-alt text-error">{{ form.developers.errors }}</span>
+                                </label>
+                            {% endif %}
+                            {% if form.developers.help_text %}
+                                <label class="label">
+                                    <span class="label-text-alt text-gray-500">{{ form.developers.help_text }}</span>
+                                </label>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text font-medium">UI/UX Designers</span>
+                            </label>
+                            {{ form.uiux_designers }}
+                            {% if form.uiux_designers.errors %}
+                                <label class="label">
+                                    <span class="label-text-alt text-error">{{ form.uiux_designers.errors }}</span>
+                                </label>
+                            {% endif %}
+                            {% if form.uiux_designers.help_text %}
+                                <label class="label">
+                                    <span class="label-text-alt text-gray-500">{{ form.uiux_designers.help_text }}</span>
+                                </label>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text font-medium">BDE Users</span>
+                            </label>
+                            {{ form.bde_users }}
+                            {% if form.bde_users.errors %}
+                                <label class="label">
+                                    <span class="label-text-alt text-error">{{ form.bde_users.errors }}</span>
+                                </label>
+                            {% endif %}
+                            {% if form.bde_users.help_text %}
+                                <label class="label">
+                                    <span class="label-text-alt text-gray-500">{{ form.bde_users.help_text }}</span>
+                                </label>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-2">💡 Hold Ctrl (Windows) or Cmd (Mac) to select multiple users</p>
+                </div>
+                {% endif %}
+                
                 <!-- Client Information -->
                 <div class="divider"></div>
                 <div class="space-y-4">

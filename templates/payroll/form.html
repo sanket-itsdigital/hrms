@@ -1,0 +1,163 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ title }} - HRMS{% endblock %}
+
+{% block page_header %}
+<div class="mb-6">
+    <h1 class="text-3xl font-bold text-gray-900 flex items-center gap-3 mb-2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        {{ title }}
+    </h1>
+    <div class="breadcrumbs text-sm">
+        <ul>
+            <li><a href="{% url 'accounts:dashboard' %}" class="text-gray-500 hover:text-gray-700">Dashboard</a></li>
+            <li><a href="{% url 'payroll:list' %}" class="text-gray-500 hover:text-gray-700">Payroll</a></li>
+            <li class="text-gray-400">{% if payroll %}Update{% else %}Create{% endif %}</li>
+        </ul>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <div class="card shadow-xl">
+        <div class="card-body">
+            <form method="post" class="space-y-6">
+                {% csrf_token %}
+                
+                <!-- Basic Information -->
+                <div class="space-y-4">
+                    <h2 class="text-xl font-semibold text-gray-800 mb-4">Basic Information</h2>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text font-medium">Employee <span class="text-error">*</span></span>
+                            </label>
+                            {{ form.user }}
+                            {% if form.user.errors %}
+                                <label class="label">
+                                    <span class="label-text-alt text-error">{{ form.user.errors }}</span>
+                                </label>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text font-medium">Year <span class="text-error">*</span></span>
+                            </label>
+                            {{ form.year }}
+                            {% if form.year.errors %}
+                                <label class="label">
+                                    <span class="label-text-alt text-error">{{ form.year.errors }}</span>
+                                </label>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text font-medium">Month <span class="text-error">*</span></span>
+                        </label>
+                        {{ form.month }}
+                        {% if form.month.errors %}
+                            <label class="label">
+                                <span class="label-text-alt text-error">{{ form.month.errors }}</span>
+                            </label>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <!-- Salary Calculation -->
+                <div class="divider"></div>
+                <div class="space-y-4">
+                    <h2 class="text-xl font-semibold text-gray-800 mb-4">Salary Calculation</h2>
+                    
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text font-medium">Base Salary <span class="text-error">*</span></span>
+                        </label>
+                        {{ form.base_salary }}
+                        {% if form.base_salary.errors %}
+                            <label class="label">
+                                <span class="label-text-alt text-error">{{ form.base_salary.errors }}</span>
+                            </label>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text font-medium">Bonuses</span>
+                            </label>
+                            {{ form.bonuses }}
+                            {% if form.bonuses.errors %}
+                                <label class="label">
+                                    <span class="label-text-alt text-error">{{ form.bonuses.errors }}</span>
+                                </label>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text font-medium">Deductions</span>
+                            </label>
+                            {{ form.deductions }}
+                            {% if form.deductions.errors %}
+                                <label class="label">
+                                    <span class="label-text-alt text-error">{{ form.deductions.errors }}</span>
+                                </label>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text font-medium">Attendance Deduction</span>
+                            </label>
+                            {{ form.attendance_deduction }}
+                            {% if form.attendance_deduction.errors %}
+                                <label class="label">
+                                    <span class="label-text-alt text-error">{{ form.attendance_deduction.errors }}</span>
+                                </label>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Additional Information -->
+                <div class="divider"></div>
+                <div class="space-y-4">
+                    <h2 class="text-xl font-semibold text-gray-800 mb-4">Additional Information</h2>
+                    
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text font-medium">Notes</span>
+                        </label>
+                        {{ form.notes }}
+                        {% if form.notes.errors %}
+                            <label class="label">
+                                <span class="label-text-alt text-error">{{ form.notes.errors }}</span>
+                            </label>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <!-- Form Actions -->
+                <div class="divider"></div>
+                <div class="flex justify-end gap-4">
+                    <a href="{% url 'payroll:list' %}" class="btn btn-ghost">Cancel</a>
+                    <button type="submit" class="btn btn-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                        </svg>
+                        {% if payroll %}Update{% else %}Create{% endif %} Payroll
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

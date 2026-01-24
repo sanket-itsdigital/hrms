@@ -11,39 +11,6 @@
     </div>
     
     <div class="flex-none gap-2">
-        <!-- Notifications Dropdown -->
-        <div class="dropdown dropdown-end">
-            <div tabindex="0" role="button" class="btn btn-ghost btn-circle">
-                <div class="indicator">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                    </svg>
-                    {% if unread_notifications_count > 0 %}
-                        <span class="badge badge-xs badge-error indicator-item"></span>
-                    {% endif %}
-                </div>
-            </div>
-            <ul tabindex="0" class="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow-lg border border-base-300">
-                <li class="menu-title">
-                    <span>Notifications</span>
-                </li>
-                {% for notification in user.notifications.all|slice:":5" %}
-                <li>
-                    <a href="{% url 'notifications:detail' notification.id %}" class="{% if not notification.is_read %}font-bold{% endif %}">
-                        <div>
-                            <div class="text-sm">{{ notification.title }}</div>
-                            <div class="text-xs text-base-content/60">{{ notification.created_at|timesince }} ago</div>
-                        </div>
-                    </a>
-                </li>
-                {% empty %}
-                <li><span class="text-base-content/60">No notifications</span></li>
-                {% endfor %}
-                <li><div class="divider my-1"></div></li>
-                <li><a href="{% url 'notifications:list' %}" class="text-center">View all</a></li>
-            </ul>
-        </div>
-        
         <!-- User Dropdown -->
         <div class="dropdown dropdown-end">
             <div tabindex="0" role="button" class="btn btn-ghost btn-circle avatar">

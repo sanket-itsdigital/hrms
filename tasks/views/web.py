@@ -296,6 +296,12 @@ def create_task(request):
         return redirect("tasks:list")
 
     project_id = request.GET.get("project")
+    # Convert to int if provided
+    if project_id:
+        try:
+            project_id = int(project_id)
+        except (ValueError, TypeError):
+            project_id = None
 
     if request.method == "POST":
         form = TaskForm(request.POST, user=user, project_id=project_id)

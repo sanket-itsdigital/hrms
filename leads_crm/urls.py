@@ -1,36 +1,13 @@
 from django.urls import path
-from django.shortcuts import render
+from leads_crm.views.web import (
+    list_leads, create_lead, update_lead, convert_to_project
+)
 
 app_name = 'leads_crm'
 
-# Placeholder views
-def list_view(request):
-    return render(request, 'placeholder.html', {
-        'page_title': 'Leads List',
-        'message': 'Leads list feature is under development'
-    })
-
-def create_view(request):
-    return render(request, 'placeholder.html', {
-        'page_title': 'Add New Lead',
-        'message': 'Add new lead feature is under development'
-    })
-
-def proposals_view(request):
-    return render(request, 'placeholder.html', {
-        'page_title': 'Proposals',
-        'message': 'Proposals feature is under development'
-    })
-
-def meetings_view(request):
-    return render(request, 'placeholder.html', {
-        'page_title': 'Meeting Logs',
-        'message': 'Meeting logs feature is under development'
-    })
-
 urlpatterns = [
-    path('', list_view, name='list'),
-    path('create/', create_view, name='create'),
-    path('proposals/', proposals_view, name='proposals'),
-    path('meetings/', meetings_view, name='meetings'),
+    path('', list_leads, name='list'),
+    path('create/', create_lead, name='create'),
+    path('<int:id>/', update_lead, name='update'),
+    path('<int:id>/convert/', convert_to_project, name='convert'),
 ]

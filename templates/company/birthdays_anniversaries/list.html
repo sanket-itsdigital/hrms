@@ -1,0 +1,124 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Birthdays & Anniversaries - HRMS{% endblock %}
+
+{% block page_header %}
+<div class="mb-6">
+    <h1 class="text-3xl font-bold text-gray-900 flex items-center gap-3 mb-2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-pink-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        Birthdays & Anniversaries
+    </h1>
+    <div class="breadcrumbs text-sm">
+        <ul>
+            <li><a href="{% url 'accounts:dashboard' %}" class="text-gray-500 hover:text-gray-700">Dashboard</a></li>
+            <li><a href="{% url 'company:index' %}" class="text-gray-500 hover:text-gray-700">Company</a></li>
+            <li class="text-gray-400">Birthdays & Anniversaries</li>
+        </ul>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Birthdays This Month -->
+        <div class="card shadow-xl">
+            <div class="card-body">
+                <h2 class="card-title text-gray-800 text-lg font-semibold mb-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-pink-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Birthdays - {{ current_month }}
+                </h2>
+                {% if birthdays_this_month %}
+                <div class="space-y-3">
+                    {% for item in birthdays_this_month %}
+                    <div class="card {% if item.is_today %}bg-pink-100 border-2 border-pink-300{% else %}bg-base-200{% endif %}">
+                        <div class="card-body p-4">
+                            <div class="flex items-center gap-3">
+                                <div class="avatar placeholder">
+                                    <div class="bg-pink-500 text-white rounded-full w-12">
+                                        <span>{{ item.user.get_full_name|first|default:item.user.username|first|upper }}</span>
+                                    </div>
+                                </div>
+                                <div class="flex-1">
+                                    <p class="font-semibold">{{ item.user.get_full_name|default:item.user.username }}</p>
+                                    <p class="text-sm text-gray-600">
+                                        {% if item.is_today %}
+                                        🎂 <span class="font-bold text-pink-600">Today!</span>
+                                        {% else %}
+                                        {{ item.date|date:"M d" }}
+                                        {% endif %}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-8 text-gray-500">
+                    <p>No birthdays this month</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Anniversaries This Month -->
+        <div class="card shadow-xl">
+            <div class="card-body">
+                <h2 class="card-title text-gray-800 text-lg font-semibold mb-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+                    </svg>
+                    Work Anniversaries - {{ current_month }}
+                </h2>
+                {% if anniversaries_this_month %}
+                <div class="space-y-3">
+                    {% for item in anniversaries_this_month %}
+                    <div class="card {% if item.is_today %}bg-blue-100 border-2 border-blue-300{% else %}bg-base-200{% endif %}">
+                        <div class="card-body p-4">
+                            <div class="flex items-center gap-3">
+                                <div class="avatar placeholder">
+                                    <div class="bg-blue-500 text-white rounded-full w-12">
+                                        <span>{{ item.user.get_full_name|first|default:item.user.username|first|upper }}</span>
+                                    </div>
+                                </div>
+                                <div class="flex-1">
+                                    <p class="font-semibold">{{ item.user.get_full_name|default:item.user.username }}</p>
+                                    <p class="text-sm text-gray-600">
+                                        {% if item.is_today %}
+                                        🎉 <span class="font-bold text-blue-600">{{ item.years }} year{{ item.years|pluralize }} today!</span>
+                                        {% else %}
+                                        {{ item.date|date:"M d" }} • {{ item.years }} year{{ item.years|pluralize }}
+                                        {% endif %}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-8 text-gray-500">
+                    <p>No anniversaries this month</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    {% if can_manage %}
+    <div class="card shadow-xl mt-6">
+        <div class="card-body">
+            <h2 class="card-title text-gray-800 text-lg font-semibold mb-4">Manage Employee Information</h2>
+            <p class="text-gray-600 mb-4">Update birthday and joining date for employees to enable birthday and anniversary tracking.</p>
+            <a href="{% url 'accounts:users' %}" class="btn btn-primary">Manage Users</a>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

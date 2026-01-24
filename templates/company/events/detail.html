@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ event.title }} - HRMS{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <div class="card shadow-xl">
+        <div class="card-body">
+            <div class="flex justify-between items-start mb-4">
+                <div>
+                    <h1 class="text-3xl font-bold mb-2">{{ event.title }}</h1>
+                    <div class="flex items-center gap-4 text-sm text-gray-600">
+                        <span>📅 {{ event.start_date|date:"M d, Y H:i" }} - {{ event.end_date|date:"H:i" }}</span>
+                        {% if event.location %}
+                        <span>📍 {{ event.location }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <span class="badge badge-lg">{{ event.get_event_type_display }}</span>
+            </div>
+            
+            {% if event.description %}
+            <div class="mb-4">
+                <p class="text-gray-700 whitespace-pre-wrap">{{ event.description }}</p>
+            </div>
+            {% endif %}
+            
+            {% if event.is_virtual and event.venue_link %}
+            <div class="mb-4">
+                <a href="{{ event.venue_link }}" target="_blank" class="btn btn-primary">
+                    Join Online Event
+                </a>
+            </div>
+            {% endif %}
+            
+            <div class="divider"></div>
+            
+            <div>
+                <h3 class="font-semibold mb-3">Attendees ({{ event.attendees.count }})</h3>
+                <div class="flex flex-wrap gap-2">
+                    {% for attendee in event.attendees.all %}
+                    <div class="avatar placeholder">
+                        <div class="bg-primary text-primary-content rounded-full w-10">
+                            <span>{{ attendee.get_full_name|first|default:attendee.username|first|upper }}</span>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p class="text-gray-500">No attendees yet</p>
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <div class="divider"></div>
+            
+            <div class="flex justify-between">
+                <div>
+                    {% if is_attending %}
+                    <a href="{% url 'company:event_leave' event.id %}" class="btn btn-outline btn-error">Leave Event</a>
+                    {% else %}
+                    <a href="{% url 'company:event_join' event.id %}" class="btn btn-primary">Join Event</a>
+                    {% endif %}
+                </div>
+                {% if can_manage %}
+                <div class="flex gap-2">
+                    <a href="{% url 'company:event_update' event.id %}" class="btn btn-primary">Edit</a>
+                    <a href="{% url 'company:event_delete' event.id %}" class="btn btn-error">Delete</a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

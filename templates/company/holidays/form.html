@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ title }} - HRMS{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <div class="card shadow-xl">
+        <div class="card-body">
+            <form method="post" class="space-y-6">
+                {% csrf_token %}
+                
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text font-medium">Holiday Name <span class="text-error">*</span></span>
+                    </label>
+                    {{ form.name }}
+                    {% if form.name.errors %}
+                        <label class="label">
+                            <span class="label-text-alt text-error">{{ form.name.errors }}</span>
+                        </label>
+                    {% endif %}
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text font-medium">Date <span class="text-error">*</span></span>
+                        </label>
+                        {{ form.date }}
+                        {% if form.date.errors %}
+                            <label class="label">
+                                <span class="label-text-alt text-error">{{ form.date.errors }}</span>
+                            </label>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text font-medium">Type</span>
+                        </label>
+                        {{ form.holiday_type }}
+                        {% if form.holiday_type.errors %}
+                            <label class="label">
+                                <span class="label-text-alt text-error">{{ form.holiday_type.errors }}</span>
+                            </label>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text font-medium">Description</span>
+                    </label>
+                    {{ form.description }}
+                    {% if form.description.errors %}
+                        <label class="label">
+                            <span class="label-text-alt text-error">{{ form.description.errors }}</span>
+                        </label>
+                    {% endif %}
+                </div>
+                
+                <div class="form-control">
+                    <label class="label cursor-pointer justify-start gap-4">
+                        {{ form.is_recurring }}
+                        <span class="label-text font-medium">Recurring (repeats every year)</span>
+                    </label>
+                    {% if form.is_recurring.errors %}
+                        <label class="label">
+                            <span class="label-text-alt text-error">{{ form.is_recurring.errors }}</span>
+                        </label>
+                    {% endif %}
+                </div>
+                
+                <div class="divider"></div>
+                <div class="flex justify-end gap-4">
+                    <a href="{% url 'company:holidays_list' %}" class="btn btn-ghost">Cancel</a>
+                    <button type="submit" class="btn btn-primary">{{ action }} Holiday</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

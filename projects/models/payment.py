@@ -68,7 +68,7 @@ class Payment(models.Model):
         ordering = ['-due_date', '-created_at']
 
     def __str__(self):
-        return f"{self.project.name} - ${self.amount} ({self.get_status_display()})"
+        return f"{self.project.name} - ₹{self.amount} ({self.get_status_display()})"
     
     def save(self, *args, **kwargs):
         """Auto-update status based on paid amount"""

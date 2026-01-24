@@ -391,9 +391,9 @@
                     <h2 class="card-title text-gray-800 text-lg font-semibold">Payments</h2>
                     {% if total_payment_amount %}
                     <div class="text-sm text-gray-600 mt-1">
-                        Total: ${{ total_payment_amount|floatformat:2 }} | 
-                        Paid: ${{ total_paid_amount|floatformat:2 }} | 
-                        Remaining: ${{ remaining_payment_amount|floatformat:2 }}
+                        Total: ₹{{ total_payment_amount|floatformat:2 }} | 
+                        Paid: ₹{{ total_paid_amount|floatformat:2 }} | 
+                        Remaining: ₹{{ remaining_payment_amount|floatformat:2 }}
                     </div>
                     {% endif %}
                 </div>
@@ -430,11 +430,11 @@
                                 <div class="text-xs text-gray-500 mt-1">{{ payment.milestone.name }}</div>
                                 {% endif %}
                             </td>
-                            <td class="font-semibold">${{ payment.amount|floatformat:2 }}</td>
+                            <td class="font-semibold">₹{{ payment.amount|floatformat:2 }}</td>
                             <td>
-                                ${{ payment.paid_amount|floatformat:2 }}
+                                ₹{{ payment.paid_amount|floatformat:2 }}
                                 {% if payment.remaining_amount > 0 %}
-                                <div class="text-xs text-gray-500">Remaining: ${{ payment.remaining_amount|floatformat:2 }}</div>
+                                <div class="text-xs text-gray-500">Remaining: ₹{{ payment.remaining_amount|floatformat:2 }}</div>
                                 {% endif %}
                             </td>
                             <td>

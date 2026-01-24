@@ -1,0 +1,137 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ title }} - HRMS{% endblock %}
+
+{% block page_header %}
+<div class="mb-6">
+    <h1 class="text-3xl font-bold text-gray-900 flex items-center gap-3 mb-2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        </svg>
+        {{ title }}
+    </h1>
+    <div class="breadcrumbs text-sm">
+        <ul>
+            <li><a href="{% url 'accounts:dashboard' %}" class="text-gray-500 hover:text-gray-700">Dashboard</a></li>
+            <li><a href="{% url 'company:index' %}" class="text-gray-500 hover:text-gray-700">Company</a></li>
+            <li><a href="{% url 'company:policies_list' %}" class="text-gray-500 hover:text-gray-700">Policies</a></li>
+            <li class="text-gray-400">{{ action }}</li>
+        </ul>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <div class="card shadow-xl">
+        <div class="card-body">
+            <form method="post" enctype="multipart/form-data" class="space-y-6">
+                {% csrf_token %}
+                
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text font-medium">Title <span class="text-error">*</span></span>
+                    </label>
+                    {{ form.title }}
+                    {% if form.title.errors %}
+                        <label class="label">
+                            <span class="label-text-alt text-error">{{ form.title.errors }}</span>
+                        </label>
+                    {% endif %}
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text font-medium">Category</span>
+                        </label>
+                        {{ form.category }}
+                        {% if form.category.errors %}
+                            <label class="label">
+                                <span class="label-text-alt text-error">{{ form.category.errors }}</span>
+                            </label>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text font-medium">Version</span>
+                        </label>
+                        {{ form.version }}
+                        {% if form.version.errors %}
+                            <label class="label">
+                                <span class="label-text-alt text-error">{{ form.version.errors }}</span>
+                            </label>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text font-medium">Description</span>
+                    </label>
+                    {{ form.description }}
+                    {% if form.description.errors %}
+                        <label class="label">
+                            <span class="label-text-alt text-error">{{ form.description.errors }}</span>
+                        </label>
+                    {% endif %}
+                </div>
+                
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text font-medium">Policy Document <span class="text-error">*</span></span>
+                    </label>
+                    {{ form.document }}
+                    {% if form.document.errors %}
+                        <label class="label">
+                            <span class="label-text-alt text-error">{{ form.document.errors }}</span>
+                        </label>
+                    {% endif %}
+                    <label class="label">
+                        <span class="label-text-alt text-gray-500">Upload PDF, DOC, or DOCX file</span>
+                    </label>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text font-medium">Effective Date <span class="text-error">*</span></span>
+                        </label>
+                        {{ form.effective_date }}
+                        {% if form.effective_date.errors %}
+                            <label class="label">
+                                <span class="label-text-alt text-error">{{ form.effective_date.errors }}</span>
+                            </label>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="form-control">
+                        <label class="label cursor-pointer justify-start gap-4">
+                            {{ form.is_active }}
+                            <span class="label-text font-medium">Active</span>
+                        </label>
+                        {% if form.is_active.errors %}
+                            <label class="label">
+                                <span class="label-text-alt text-error">{{ form.is_active.errors }}</span>
+                            </label>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="divider"></div>
+                <div class="flex justify-end gap-4">
+                    <a href="{% url 'company:policies_list' %}" class="btn btn-ghost">Cancel</a>
+                    <button type="submit" class="btn btn-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                        </svg>
+                        {{ action }} Policy
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

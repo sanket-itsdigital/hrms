@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ title }} - HRMS{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <div class="card shadow-xl">
+        <div class="card-body">
+            <div class="mb-4">
+                <h3 class="text-lg font-semibold">{{ target_user.get_full_name|default:target_user.username }}</h3>
+                <p class="text-sm text-gray-600">{{ target_user.email }}</p>
+            </div>
+            
+            <form method="post" class="space-y-6">
+                {% csrf_token %}
+                
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text font-medium">Birth Date</span>
+                    </label>
+                    {{ form.birth_date }}
+                    {% if form.birth_date.errors %}
+                        <label class="label">
+                            <span class="label-text-alt text-error">{{ form.birth_date.errors }}</span>
+                        </label>
+                    {% endif %}
+                </div>
+                
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text font-medium">Joining Date</span>
+                    </label>
+                    {{ form.joining_date }}
+                    {% if form.joining_date.errors %}
+                        <label class="label">
+                            <span class="label-text-alt text-error">{{ form.joining_date.errors }}</span>
+                        </label>
+                    {% endif %}
+                    <label class="label">
+                        <span class="label-text-alt text-gray-500">Date when employee joined the company</span>
+                    </label>
+                </div>
+                
+                <div class="divider"></div>
+                <div class="flex justify-end gap-4">
+                    <a href="{% url 'company:birthdays_anniversaries' %}" class="btn btn-ghost">Cancel</a>
+                    <button type="submit" class="btn btn-primary">{{ action }}</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

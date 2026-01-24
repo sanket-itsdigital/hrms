@@ -53,7 +53,7 @@
                 </svg>
             </div>
             <div class="stat-title text-warning-content/80">Expected Revenue</div>
-            <div class="stat-value text-3xl">${{ expected_revenue|floatformat:0 }}</div>
+            <div class="stat-value text-3xl">₹{{ expected_revenue|floatformat:0 }}</div>
         </div>
         
         <div class="stat bg-info text-info-content rounded-lg shadow-lg">
@@ -87,7 +87,7 @@
                                 <h6 class="font-semibold">{{ lead.name }}</h6>
                                 <p class="text-xs text-base-content/60 mt-1">{{ lead.company_name }}</p>
                                 <div class="text-xs text-base-content/50 mt-2">
-                                    Expected: ${{ lead.expected_revenue|floatformat:0|default:"0" }}
+                                    Expected: ₹{{ lead.expected_revenue|floatformat:0|default:"0" }}
                                 </div>
                             </div>
                             {% endif %}
@@ -106,7 +106,7 @@
                                 <h6 class="font-semibold">{{ lead.name }}</h6>
                                 <p class="text-xs text-base-content/60 mt-1">{{ lead.company_name }}</p>
                                 <div class="text-xs text-base-content/50 mt-2">
-                                    Expected: ${{ lead.expected_revenue|floatformat:0|default:"0" }}
+                                    Expected: ₹{{ lead.expected_revenue|floatformat:0|default:"0" }}
                                 </div>
                             </div>
                             {% endif %}
@@ -125,7 +125,7 @@
                                 <h6 class="font-semibold">{{ lead.name }}</h6>
                                 <p class="text-xs text-base-content/60 mt-1">{{ lead.company_name }}</p>
                                 <div class="text-xs text-base-content/50 mt-2">
-                                    Expected: ${{ lead.expected_revenue|floatformat:0|default:"0" }}
+                                    Expected: ₹{{ lead.expected_revenue|floatformat:0|default:"0" }}
                                 </div>
                             </div>
                             {% endif %}
@@ -144,7 +144,7 @@
                                 <h6 class="font-semibold">{{ lead.name }}</h6>
                                 <p class="text-xs text-base-content/60 mt-1">{{ lead.company_name }}</p>
                                 <div class="text-xs text-base-content/50 mt-2">
-                                    Expected: ${{ lead.expected_revenue|floatformat:0|default:"0" }}
+                                    Expected: ₹{{ lead.expected_revenue|floatformat:0|default:"0" }}
                                 </div>
                             </div>
                             {% endif %}
@@ -163,7 +163,7 @@
                                 <h6 class="font-semibold">{{ lead.name }}</h6>
                                 <p class="text-xs text-base-content/60 mt-1">{{ lead.company_name }}</p>
                                 <div class="text-xs text-success mt-2">
-                                    Won: ${{ lead.expected_revenue|floatformat:0|default:"0" }}
+                                    Won: ₹{{ lead.expected_revenue|floatformat:0|default:"0" }}
                                 </div>
                             </div>
                             {% endif %}

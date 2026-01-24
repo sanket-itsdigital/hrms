@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Approve/Reject Expense - HRMS{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <div class="card shadow-xl mb-6">
+        <div class="card-body">
+            <h2 class="text-xl font-bold mb-4">{{ expense.title }}</h2>
+            <div class="grid grid-cols-2 gap-4 mb-4">
+                <div>
+                    <span class="text-sm text-gray-600">Amount:</span>
+                    <p class="font-semibold text-lg">₹{{ expense.amount|floatformat:2 }}</p>
+                </div>
+                <div>
+                    <span class="text-sm text-gray-600">Date:</span>
+                    <p class="font-semibold">{{ expense.expense_date|date:"M d, Y" }}</p>
+                </div>
+                <div>
+                    <span class="text-sm text-gray-600">Submitted By:</span>
+                    <p class="font-semibold">{{ expense.user.get_full_name|default:expense.user.username }}</p>
+                </div>
+                <div>
+                    <span class="text-sm text-gray-600">Category:</span>
+                    <p class="font-semibold">{{ expense.category.name|default:"-" }}</p>
+                </div>
+            </div>
+            {% if expense.description %}
+            <div class="mb-4">
+                <span class="text-sm text-gray-600">Description:</span>
+                <p class="text-gray-700">{{ expense.description }}</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div class="card shadow-xl">
+        <div class="card-body">
+            <h2 class="text-xl font-bold mb-4">Approve or Reject</h2>
+            <form method="post" class="space-y-6">
+                {% csrf_token %}
+                
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text font-medium">Action <span class="text-error">*</span></span>
+                    </label>
+                    {{ form.action }}
+                    {% if form.action.errors %}
+                        <label class="label">
+                            <span class="label-text-alt text-error">{{ form.action.errors }}</span>
+                        </label>
+                    {% endif %}
+                </div>
+                
+                <div class="form-control" id="rejection-reason-field" style="display: none;">
+                    <label class="label">
+                        <span class="label-text font-medium">Rejection Reason <span class="text-error">*</span></span>
+                    </label>
+                    {{ form.rejection_reason }}
+                    {% if form.rejection_reason.errors %}
+                        <label class="label">
+                            <span class="label-text-alt text-error">{{ form.rejection_reason.errors }}</span>
+                        </label>
+                    {% endif %}
+                </div>
+                
+                <div class="divider"></div>
+                <div class="flex justify-end gap-4">
+                    <a href="{% url 'expenses:detail' expense.id %}" class="btn btn-ghost">Cancel</a>
+                    <button type="submit" class="btn btn-primary">Submit Decision</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const actionRadios = document.querySelectorAll('input[name="action"]');
+    const rejectionField = document.getElementById('rejection-reason-field');
+    
+    function toggleRejectionField() {
+        const selectedAction = document.querySelector('input[name="action"]:checked');
+        if (selectedAction && selectedAction.value === 'REJECT') {
+            rejectionField.style.display = 'block';
+        } else {
+            rejectionField.style.display = 'none';
+        }
+    }
+    
+    actionRadios.forEach(radio => {
+        radio.addEventListener('change', toggleRejectionField);
+    });
+    
+    toggleRejectionField();
+});
+</script>
+{% endblock %}

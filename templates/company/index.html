@@ -1,0 +1,289 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Company Information - HRMS{% endblock %}
+
+{% block page_header %}
+<div class="mb-6">
+    <h1 class="text-3xl font-bold text-gray-900 flex items-center gap-3 mb-2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+        </svg>
+        Company Information
+    </h1>
+    <div class="breadcrumbs text-sm">
+        <ul>
+            <li><a href="{% url 'accounts:dashboard' %}" class="text-gray-500 hover:text-gray-700">Dashboard</a></li>
+            <li class="text-gray-400">Company</li>
+        </ul>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Quick Stats -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <a href="{% url 'company:announcements_list' %}" class="card bg-gradient-to-br from-blue-500 to-blue-600 text-white shadow-xl hover:shadow-2xl transition-shadow">
+            <div class="card-body">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h3 class="text-lg font-semibold">Announcements</h3>
+                        <p class="text-2xl font-bold">{{ recent_announcements|length }}</p>
+                        <p class="text-sm opacity-90">Recent updates</p>
+                    </div>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14M5.436 13.683A4.004 4.004 0 0112 8h4.5c0 1.232-.536 2.35-1.39 3.104l-1.11 1.11" />
+                    </svg>
+                </div>
+            </div>
+        </a>
+        
+        <a href="{% url 'company:policies_list' %}" class="card bg-gradient-to-br from-purple-500 to-purple-600 text-white shadow-xl hover:shadow-2xl transition-shadow">
+            <div class="card-body">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h3 class="text-lg font-semibold">Policies</h3>
+                        <p class="text-2xl font-bold">{{ policies_count }}</p>
+                        <p class="text-sm opacity-90">Active policies</p>
+                    </div>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                </div>
+            </div>
+        </a>
+        
+        <a href="{% url 'company:holidays_list' %}" class="card bg-gradient-to-br from-green-500 to-green-600 text-white shadow-xl hover:shadow-2xl transition-shadow">
+            <div class="card-body">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h3 class="text-lg font-semibold">Holidays</h3>
+                        <p class="text-2xl font-bold">{{ upcoming_holidays|length }}</p>
+                        <p class="text-sm opacity-90">Upcoming</p>
+                    </div>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                </div>
+            </div>
+        </a>
+        
+        <a href="{% url 'company:events_list' %}" class="card bg-gradient-to-br from-orange-500 to-orange-600 text-white shadow-xl hover:shadow-2xl transition-shadow">
+            <div class="card-body">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h3 class="text-lg font-semibold">Events</h3>
+                        <p class="text-2xl font-bold">{{ upcoming_events|length }}</p>
+                        <p class="text-sm opacity-90">Upcoming</p>
+                    </div>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                </div>
+            </div>
+        </a>
+    </div>
+    
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Recent Announcements -->
+        <div class="card shadow-xl">
+            <div class="card-body">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="card-title text-gray-800 text-lg font-semibold">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14M5.436 13.683A4.004 4.004 0 0112 8h4.5c0 1.232-.536 2.35-1.39 3.104l-1.11 1.11" />
+                        </svg>
+                        Recent Announcements
+                    </h2>
+                    <a href="{% url 'company:announcements_list' %}" class="btn btn-sm btn-primary">View All</a>
+                </div>
+                {% if recent_announcements %}
+                <div class="space-y-3">
+                    {% for announcement in recent_announcements %}
+                    <div class="card bg-base-200">
+                        <div class="card-body p-4">
+                            <div class="flex justify-between items-start">
+                                <div class="flex-1">
+                                    <h3 class="font-semibold">
+                                        <a href="{% url 'company:announcement_detail' announcement.id %}" class="text-gray-900 hover:text-blue-600">
+                                            {% if announcement.is_pinned %}
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline text-warning mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                                            </svg>
+                                            {% endif %}
+                                            {{ announcement.title }}
+                                        </a>
+                                    </h3>
+                                    <p class="text-sm text-gray-600 mt-1 line-clamp-2">{{ announcement.content|truncatewords:20 }}</p>
+                                    <p class="text-xs text-gray-500 mt-2">{{ announcement.created_at|timesince }} ago</p>
+                                </div>
+                                <span class="badge badge-{% if announcement.priority == 'URGENT' %}error{% elif announcement.priority == 'HIGH' %}warning{% elif announcement.priority == 'MEDIUM' %}info{% else %}neutral{% endif %} badge-sm">
+                                    {{ announcement.get_priority_display }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-8 text-gray-500">
+                    <p>No announcements yet</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Today's Celebrations -->
+        <div class="card shadow-xl">
+            <div class="card-body">
+                <h2 class="card-title text-gray-800 text-lg font-semibold mb-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-pink-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Today's Celebrations
+                </h2>
+                
+                {% if birthdays_today or anniversaries_today %}
+                <div class="space-y-4">
+                    {% if birthdays_today %}
+                    <div>
+                        <h3 class="font-semibold text-pink-600 mb-2 flex items-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            Birthdays
+                        </h3>
+                        <div class="space-y-2">
+                            {% for user in birthdays_today %}
+                            <div class="flex items-center gap-3 p-2 bg-pink-50 rounded-lg">
+                                <div class="avatar placeholder">
+                                    <div class="bg-pink-500 text-white rounded-full w-10">
+                                        <span>{{ user.get_full_name|first|default:user.username|first|upper }}</span>
+                                    </div>
+                                </div>
+                                <div>
+                                    <p class="font-semibold">{{ user.get_full_name|default:user.username }}</p>
+                                    <p class="text-xs text-gray-600">🎂 Happy Birthday!</p>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if anniversaries_today %}
+                    <div>
+                        <h3 class="font-semibold text-blue-600 mb-2 flex items-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+                            </svg>
+                            Work Anniversaries
+                        </h3>
+                        <div class="space-y-2">
+                            {% for item in anniversaries_today %}
+                            <div class="flex items-center gap-3 p-2 bg-blue-50 rounded-lg">
+                                <div class="avatar placeholder">
+                                    <div class="bg-blue-500 text-white rounded-full w-10">
+                                        <span>{{ item.user.get_full_name|first|default:item.user.username|first|upper }}</span>
+                                    </div>
+                                </div>
+                                <div>
+                                    <p class="font-semibold">{{ item.user.get_full_name|default:item.user.username }}</p>
+                                    <p class="text-xs text-gray-600">🎉 {{ item.years }} year{{ item.years|pluralize }} of service!</p>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+                {% else %}
+                <div class="text-center py-8 text-gray-500">
+                    <p>No celebrations today</p>
+                    <a href="{% url 'company:birthdays_anniversaries' %}" class="btn btn-sm btn-primary mt-4">View All</a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Upcoming Holidays & Events -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Upcoming Holidays -->
+        <div class="card shadow-xl">
+            <div class="card-body">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="card-title text-gray-800 text-lg font-semibold">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        Upcoming Holidays
+                    </h2>
+                    <a href="{% url 'company:holidays_list' %}" class="btn btn-sm btn-primary">View All</a>
+                </div>
+                {% if upcoming_holidays %}
+                <div class="space-y-2">
+                    {% for holiday in upcoming_holidays %}
+                    <div class="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+                        <div>
+                            <p class="font-semibold">{{ holiday.name }}</p>
+                            <p class="text-sm text-gray-600">{{ holiday.date|date:"M d, Y" }} ({{ holiday.date|timesince }})</p>
+                        </div>
+                        <span class="badge badge-sm">{{ holiday.get_holiday_type_display }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-8 text-gray-500">
+                    <p>No upcoming holidays</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Upcoming Events -->
+        <div class="card shadow-xl">
+            <div class="card-body">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="card-title text-gray-800 text-lg font-semibold">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-orange-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        Upcoming Events
+                    </h2>
+                    <a href="{% url 'company:events_list' %}" class="btn btn-sm btn-primary">View All</a>
+                </div>
+                {% if upcoming_events %}
+                <div class="space-y-2">
+                    {% for event in upcoming_events %}
+                    <div class="card bg-base-200">
+                        <div class="card-body p-4">
+                            <div class="flex justify-between items-start">
+                                <div class="flex-1">
+                                    <h3 class="font-semibold">
+                                        <a href="{% url 'company:event_detail' event.id %}" class="text-gray-900 hover:text-orange-600">
+                                            {{ event.title }}
+                                        </a>
+                                    </h3>
+                                    <p class="text-sm text-gray-600 mt-1">{{ event.start_date|date:"M d, Y H:i" }}</p>
+                                    {% if event.location %}
+                                    <p class="text-xs text-gray-500 mt-1">📍 {{ event.location }}</p>
+                                    {% endif %}
+                                </div>
+                                <span class="badge badge-sm">{{ event.get_event_type_display }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-8 text-gray-500">
+                    <p>No upcoming events</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

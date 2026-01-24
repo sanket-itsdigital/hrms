@@ -531,7 +531,7 @@ def create_payment(request, project_id):
             payment.project = project
             payment.created_by = user
             payment.save()
-            messages.success(request, f'Payment of ${payment.amount} created successfully!')
+            messages.success(request, f'Payment of ₹{payment.amount} created successfully!')
             return redirect('projects:detail', id=project_id)
     else:
         form = PaymentForm(project=project)
@@ -593,7 +593,7 @@ def delete_payment(request, project_id, payment_id):
     if request.method == 'POST':
         payment_amount = payment.amount
         payment.delete()
-        messages.success(request, f'Payment of ${payment_amount} deleted successfully!')
+        messages.success(request, f'Payment of ₹{payment_amount} deleted successfully!')
         return redirect('projects:detail', id=project_id)
     
     context = {

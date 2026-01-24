@@ -1,0 +1,140 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ title }} - HRMS{% endblock %}
+
+{% block page_header %}
+<div class="mb-6">
+    <h1 class="text-3xl font-bold text-gray-900 flex items-center gap-3 mb-2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14M5.436 13.683A4.004 4.004 0 0112 8h4.5c0 1.232-.536 2.35-1.39 3.104l-1.11 1.11" />
+        </svg>
+        {{ title }}
+    </h1>
+    <div class="breadcrumbs text-sm">
+        <ul>
+            <li><a href="{% url 'accounts:dashboard' %}" class="text-gray-500 hover:text-gray-700">Dashboard</a></li>
+            <li><a href="{% url 'company:index' %}" class="text-gray-500 hover:text-gray-700">Company</a></li>
+            <li><a href="{% url 'company:announcements_list' %}" class="text-gray-500 hover:text-gray-700">Announcements</a></li>
+            <li class="text-gray-400">{{ action }}</li>
+        </ul>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <div class="card shadow-xl">
+        <div class="card-body">
+            <form method="post" enctype="multipart/form-data" class="space-y-6">
+                {% csrf_token %}
+                
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text font-medium">Title <span class="text-error">*</span></span>
+                    </label>
+                    {{ form.title }}
+                    {% if form.title.errors %}
+                        <label class="label">
+                            <span class="label-text-alt text-error">{{ form.title.errors }}</span>
+                        </label>
+                    {% endif %}
+                </div>
+                
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text font-medium">Content <span class="text-error">*</span></span>
+                    </label>
+                    {{ form.content }}
+                    {% if form.content.errors %}
+                        <label class="label">
+                            <span class="label-text-alt text-error">{{ form.content.errors }}</span>
+                        </label>
+                    {% endif %}
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text font-medium">Priority</span>
+                        </label>
+                        {{ form.priority }}
+                        {% if form.priority.errors %}
+                            <label class="label">
+                                <span class="label-text-alt text-error">{{ form.priority.errors }}</span>
+                            </label>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text font-medium">Expires At</span>
+                        </label>
+                        {{ form.expires_at }}
+                        {% if form.expires_at.errors %}
+                            <label class="label">
+                                <span class="label-text-alt text-error">{{ form.expires_at.errors }}</span>
+                            </label>
+                        {% endif %}
+                        <label class="label">
+                            <span class="label-text-alt text-gray-500">Leave empty for no expiration</span>
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text font-medium">Target Roles</span>
+                    </label>
+                    {{ form.target_roles }}
+                    {% if form.target_roles.errors %}
+                        <label class="label">
+                            <span class="label-text-alt text-error">{{ form.target_roles.errors }}</span>
+                        </label>
+                    {% endif %}
+                    {% if form.target_roles.help_text %}
+                        <label class="label">
+                            <span class="label-text-alt text-gray-500">{{ form.target_roles.help_text }}</span>
+                        </label>
+                    {% endif %}
+                </div>
+                
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text font-medium">Attachment</span>
+                    </label>
+                    {{ form.attachment }}
+                    {% if form.attachment.errors %}
+                        <label class="label">
+                            <span class="label-text-alt text-error">{{ form.attachment.errors }}</span>
+                        </label>
+                    {% endif %}
+                </div>
+                
+                <div class="form-control">
+                    <label class="label cursor-pointer justify-start gap-4">
+                        {{ form.is_pinned }}
+                        <span class="label-text font-medium">Pin this announcement</span>
+                    </label>
+                    {% if form.is_pinned.errors %}
+                        <label class="label">
+                            <span class="label-text-alt text-error">{{ form.is_pinned.errors }}</span>
+                        </label>
+                    {% endif %}
+                </div>
+                
+                <div class="divider"></div>
+                <div class="flex justify-end gap-4">
+                    <a href="{% url 'company:announcements_list' %}" class="btn btn-ghost">Cancel</a>
+                    <button type="submit" class="btn btn-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                        </svg>
+                        {{ action }} Announcement
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

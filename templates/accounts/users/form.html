@@ -181,6 +181,21 @@
                                 </label>
                             {% endif %}
                         </div>
+                        
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text font-medium">Birth Date</span>
+                            </label>
+                            {{ form.birth_date }}
+                            {% if form.birth_date.errors %}
+                                <label class="label">
+                                    <span class="label-text-alt text-error">{{ form.birth_date.errors }}</span>
+                                </label>
+                            {% endif %}
+                            <label class="label">
+                                <span class="label-text-alt text-gray-500">Used for birthday celebrations</span>
+                            </label>
+                        </div>
                     </div>
                     
                     <div class="form-control">

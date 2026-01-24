@@ -55,9 +55,25 @@ def ceo_dashboard(request):
         organization=organization,
         status__in=['IN_PROGRESS', 'NOT_STARTED']
     ).count()
-    recent_projects = Project.objects.filter(
+    recent_projects_list = Project.objects.filter(
         organization=organization
-    ).order_by('-created_at')[:5]
+    ).select_related('project_manager').order_by('-created_at')[:5]
+    
+    # Calculate days remaining for each project
+    recent_projects = []
+    today = timezone.now().date()
+    for project in recent_projects_list:
+        days_remaining = None
+        is_overdue = False
+        if project.deadline:
+            delta = project.deadline - today
+            days_remaining = delta.days
+            if days_remaining < 0:
+                is_overdue = True
+                days_remaining = abs(days_remaining)
+        project.days_remaining = days_remaining
+        project.is_overdue = is_overdue
+        recent_projects.append(project)
     
     # Project status chart data
     project_status = Project.objects.filter(organization=organization).values('status').annotate(

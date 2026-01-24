@@ -1,0 +1,106 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Holiday Calendar - HRMS{% endblock %}
+
+{% block page_header %}
+<div class="mb-6">
+    <div class="flex justify-between items-center mb-4">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-900 flex items-center gap-3 mb-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                Holiday Calendar
+            </h1>
+            <div class="breadcrumbs text-sm">
+                <ul>
+                    <li><a href="{% url 'accounts:dashboard' %}" class="text-gray-500 hover:text-gray-700">Dashboard</a></li>
+                    <li><a href="{% url 'company:index' %}" class="text-gray-500 hover:text-gray-700">Company</a></li>
+                    <li class="text-gray-400">Holidays</li>
+                </ul>
+            </div>
+        </div>
+        {% if can_manage %}
+        <a href="{% url 'company:holiday_create' %}" class="btn btn-primary">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            </svg>
+            Add Holiday
+        </a>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto">
+    <!-- Upcoming Holidays -->
+    {% if upcoming_holidays %}
+    <div class="card shadow-xl mb-6">
+        <div class="card-body">
+            <h2 class="card-title text-gray-800 text-lg font-semibold mb-4">Upcoming Holidays</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {% for holiday in upcoming_holidays %}
+                <div class="card bg-green-50 border border-green-200">
+                    <div class="card-body p-4">
+                        <h3 class="font-bold text-lg">{{ holiday.name }}</h3>
+                        <p class="text-sm text-gray-600">{{ holiday.date|date:"l, M d, Y" }}</p>
+                        <span class="badge badge-sm mt-2">{{ holiday.get_holiday_type_display }}</span>
+                        {% if can_manage %}
+                        <div class="flex gap-2 mt-3">
+                            <a href="{% url 'company:holiday_update' holiday.id %}" class="btn btn-xs btn-ghost">Edit</a>
+                            <a href="{% url 'company:holiday_delete' holiday.id %}" class="btn btn-xs btn-error">Delete</a>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Holidays by Month -->
+    {% if holidays_by_month %}
+    <div class="space-y-6">
+        {% for month, month_holidays in holidays_by_month.items %}
+        <div class="card shadow-xl">
+            <div class="card-body">
+                <h2 class="card-title text-gray-800 text-lg font-semibold mb-4">{{ month }}</h2>
+                <div class="space-y-2">
+                    {% for holiday in month_holidays %}
+                    <div class="flex items-center justify-between p-3 bg-base-200 rounded-lg">
+                        <div>
+                            <p class="font-semibold">{{ holiday.name }}</p>
+                            <p class="text-sm text-gray-600">{{ holiday.date|date:"l, M d" }} • {{ holiday.get_holiday_type_display }}</p>
+                        </div>
+                        {% if can_manage %}
+                        <div class="flex gap-2">
+                            <a href="{% url 'company:holiday_update' holiday.id %}" class="btn btn-xs btn-ghost">Edit</a>
+                            <a href="{% url 'company:holiday_delete' holiday.id %}" class="btn btn-xs btn-error">Delete</a>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="card shadow-xl">
+        <div class="card-body text-center py-12">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto mb-4 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+            <h3 class="text-xl font-semibold text-gray-700 mb-2">No Holidays</h3>
+            <p class="text-gray-500 mb-6">No holidays have been added for {{ current_year }}.</p>
+            {% if can_manage %}
+            <a href="{% url 'company:holiday_create' %}" class="btn btn-primary">Add First Holiday</a>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

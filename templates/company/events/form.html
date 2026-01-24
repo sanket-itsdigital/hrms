@@ -1,0 +1,139 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ title }} - HRMS{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <div class="card shadow-xl">
+        <div class="card-body">
+            <form method="post" class="space-y-6">
+                {% csrf_token %}
+                
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text font-medium">Event Title <span class="text-error">*</span></span>
+                    </label>
+                    {{ form.title }}
+                    {% if form.title.errors %}
+                        <label class="label">
+                            <span class="label-text-alt text-error">{{ form.title.errors }}</span>
+                        </label>
+                    {% endif %}
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text font-medium">Event Type</span>
+                        </label>
+                        {{ form.event_type }}
+                        {% if form.event_type.errors %}
+                            <label class="label">
+                                <span class="label-text-alt text-error">{{ form.event_type.errors }}</span>
+                            </label>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="form-control">
+                        <label class="label cursor-pointer justify-start gap-4">
+                            {{ form.is_virtual }}
+                            <span class="label-text font-medium">Virtual Event</span>
+                        </label>
+                        {% if form.is_virtual.errors %}
+                            <label class="label">
+                                <span class="label-text-alt text-error">{{ form.is_virtual.errors }}</span>
+                            </label>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text font-medium">Description</span>
+                    </label>
+                    {{ form.description }}
+                    {% if form.description.errors %}
+                        <label class="label">
+                            <span class="label-text-alt text-error">{{ form.description.errors }}</span>
+                        </label>
+                    {% endif %}
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text font-medium">Start Date & Time <span class="text-error">*</span></span>
+                        </label>
+                        {{ form.start_date }}
+                        {% if form.start_date.errors %}
+                            <label class="label">
+                                <span class="label-text-alt text-error">{{ form.start_date.errors }}</span>
+                            </label>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text font-medium">End Date & Time <span class="text-error">*</span></span>
+                        </label>
+                        {{ form.end_date }}
+                        {% if form.end_date.errors %}
+                            <label class="label">
+                                <span class="label-text-alt text-error">{{ form.end_date.errors }}</span>
+                            </label>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text font-medium">Location</span>
+                        </label>
+                        {{ form.location }}
+                        {% if form.location.errors %}
+                            <label class="label">
+                                <span class="label-text-alt text-error">{{ form.location.errors }}</span>
+                            </label>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text font-medium">Online Meeting Link</span>
+                        </label>
+                        {{ form.venue_link }}
+                        {% if form.venue_link.errors %}
+                            <label class="label">
+                                <span class="label-text-alt text-error">{{ form.venue_link.errors }}</span>
+                            </label>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text font-medium">Attendees</span>
+                    </label>
+                    {{ form.attendees }}
+                    {% if form.attendees.errors %}
+                        <label class="label">
+                            <span class="label-text-alt text-error">{{ form.attendees.errors }}</span>
+                        </label>
+                    {% endif %}
+                    <label class="label">
+                        <span class="label-text-alt text-gray-500">Hold Ctrl/Cmd to select multiple</span>
+                    </label>
+                </div>
+                
+                <div class="divider"></div>
+                <div class="flex justify-end gap-4">
+                    <a href="{% url 'company:events_list' %}" class="btn btn-ghost">Cancel</a>
+                    <button type="submit" class="btn btn-primary">{{ action }} Event</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

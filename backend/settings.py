@@ -70,6 +70,8 @@ INHOUSE_APPS = [
     "notifications",
     "reports",
     "auditlogs",
+    "chat",
+    "company",
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + INHOUSE_APPS

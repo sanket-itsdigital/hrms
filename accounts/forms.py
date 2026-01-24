@@ -22,7 +22,7 @@ class UserForm(forms.ModelForm):
         model = User
         fields = ['username', 'email', 'first_name', 'last_name', 'phone', 'profile_picture', 
                   'role', 'employee_id', 'designation', 'department', 'date_of_joining', 
-                  'is_active', 'is_staff', 'is_verified']
+                  'birth_date', 'is_active', 'is_staff', 'is_verified']
         widgets = {
             'username': forms.TextInput(attrs={
                 'class': 'input input-bordered w-full'
@@ -55,6 +55,10 @@ class UserForm(forms.ModelForm):
                 'class': 'input input-bordered w-full'
             }),
             'date_of_joining': forms.DateInput(attrs={
+                'class': 'input input-bordered w-full',
+                'type': 'date'
+            }),
+            'birth_date': forms.DateInput(attrs={
                 'class': 'input input-bordered w-full',
                 'type': 'date'
             }),

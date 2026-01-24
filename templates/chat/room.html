@@ -1,0 +1,206 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ display_name }} - Chat - HRMS{% endblock %}
+
+{% block page_header %}
+<div class="mb-6">
+    <div class="flex justify-between items-center mb-4">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-900 flex items-center gap-3 mb-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                </svg>
+                {{ display_name }}
+            </h1>
+            <div class="breadcrumbs text-sm">
+                <ul>
+                    <li><a href="{% url 'accounts:dashboard' %}" class="text-gray-500 hover:text-gray-700">Dashboard</a></li>
+                    <li><a href="{% url 'chat:list' %}" class="text-gray-500 hover:text-gray-700">Chat</a></li>
+                    <li class="text-gray-400">{{ display_name }}</li>
+                </ul>
+            </div>
+        </div>
+        <a href="{% url 'chat:list' %}" class="btn btn-ghost">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+            Back to Chats
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <div class="card shadow-xl">
+        <div class="card-body p-0">
+            <!-- Chat Messages Area -->
+            <div id="chat-messages" class="h-96 overflow-y-auto p-6 bg-gray-50 space-y-4">
+                {% for message in messages %}
+                <div class="flex {% if message.sender.id == user.id %}justify-end{% else %}justify-start{% endif %}">
+                    <div class="max-w-xs lg:max-w-md">
+                        {% if message.sender.id != user.id %}
+                        <div class="flex items-center gap-2 mb-1">
+                            <div class="avatar placeholder">
+                                <div class="bg-blue-600 text-white rounded-full w-6 h-6">
+                                    <span class="text-xs">{{ message.sender.get_full_name|first|default:message.sender.username|first|upper }}</span>
+                                </div>
+                            </div>
+                            <span class="text-xs font-semibold text-gray-700">{{ message.sender.get_full_name|default:message.sender.username }}</span>
+                            <span class="text-xs text-gray-500">{{ message.created_at|date:"H:i" }}</span>
+                        </div>
+                        {% endif %}
+                        <div class="{% if message.sender.id == user.id %}bg-primary text-primary-content{% else %}bg-base-200 text-base-content{% endif %} rounded-lg p-3">
+                            <p class="text-sm whitespace-pre-wrap">{{ message.content }}</p>
+                        </div>
+                        {% if message.sender.id == user.id %}
+                        <div class="text-right mt-1">
+                            <span class="text-xs text-gray-500">{{ message.created_at|date:"H:i" }}</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% empty %}
+                <div class="text-center text-gray-500 py-12">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto mb-4 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                    </svg>
+                    <p>No messages yet. Start the conversation!</p>
+                </div>
+                {% endfor %}
+            </div>
+            
+            <!-- Message Input Form -->
+            <div class="border-t border-gray-200 p-4 bg-white">
+                <form id="message-form" method="post" action="{% url 'chat:send_message' room.id %}">
+                    {% csrf_token %}
+                    <div class="flex gap-2">
+                        <div class="flex-1">
+                            {{ form.content }}
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                            </svg>
+                            Send
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const chatMessages = document.getElementById('chat-messages');
+    const messageForm = document.getElementById('message-form');
+    const messageInput = document.getElementById('message-input');
+    const roomId = {{ room.id }};
+    let lastMessageId = {{ last_message_id }};
+    
+    // Auto-scroll to bottom
+    function scrollToBottom() {
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+    
+    // Load new messages periodically
+    function loadNewMessages() {
+        fetch(`{% url 'chat:get_messages' room.id %}?last_message_id=${lastMessageId}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.messages && data.messages.length > 0) {
+                    data.messages.forEach(msg => {
+                        addMessageToChat(msg);
+                        lastMessageId = Math.max(lastMessageId, msg.id);
+                    });
+                    scrollToBottom();
+                }
+            })
+            .catch(error => console.error('Error loading messages:', error));
+    }
+    
+    // Add message to chat UI
+    function addMessageToChat(msg) {
+        const isOwn = msg.sender_id === {{ user.id }};
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `flex ${isOwn ? 'justify-end' : 'justify-start'}`;
+        messageDiv.id = `message-${msg.id}`;
+        
+        const time = new Date(msg.created_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+        
+        messageDiv.innerHTML = `
+            <div class="max-w-xs lg:max-w-md">
+                ${!isOwn ? `
+                <div class="flex items-center gap-2 mb-1">
+                    <div class="avatar placeholder">
+                        <div class="bg-blue-600 text-white rounded-full w-6 h-6">
+                            <span class="text-xs">${msg.sender.charAt(0).toUpperCase()}</span>
+                        </div>
+                    </div>
+                    <span class="text-xs font-semibold text-gray-700">${msg.sender}</span>
+                    <span class="text-xs text-gray-500">${time}</span>
+                </div>
+                ` : ''}
+                <div class="${isOwn ? 'bg-primary text-primary-content' : 'bg-base-200 text-base-content'} rounded-lg p-3">
+                    <p class="text-sm whitespace-pre-wrap">${escapeHtml(msg.content)}</p>
+                </div>
+                ${isOwn ? `
+                <div class="text-right mt-1">
+                    <span class="text-xs text-gray-500">${time}</span>
+                </div>
+                ` : ''}
+            </div>
+        `;
+        
+        chatMessages.appendChild(messageDiv);
+    }
+    
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+    
+    // Handle form submission
+    messageForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(messageForm);
+        const content = messageInput.value.trim();
+        
+        if (!content) return;
+        
+        fetch(messageForm.action, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': formData.get('csrfmiddlewaretoken')
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                addMessageToChat(data.message);
+                messageInput.value = '';
+                scrollToBottom();
+                lastMessageId = Math.max(lastMessageId, data.message.id);
+            } else {
+                alert('Error sending message: ' + (data.error || 'Unknown error'));
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error sending message. Please try again.');
+        });
+    });
+    
+    // Load new messages every 3 seconds
+    setInterval(loadNewMessages, 3000);
+    
+    // Initial scroll to bottom
+    scrollToBottom();
+});
+</script>
+{% endblock %}

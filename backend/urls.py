@@ -56,6 +56,8 @@ urlpatterns = [
     path('api/leads/', include('leads_crm.urls')),
     path('api/reports/', include('reports.urls')),
     path('api/audit-logs/', include('auditlogs.urls')),
+    path('api/chat/', include('chat.urls')),
+    path('api/company/', include('company.urls')),
 ]
 
 # Serve media files in development

@@ -21,12 +21,24 @@
             </div>
         </div>
         {% if can_edit %}
-        <a href="{% url 'leads_crm:create' %}" class="btn btn-primary">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-            </svg>
-            Add New Lead
-        </a>
+        <div class="flex flex-wrap gap-3 items-center">
+            <a href="{% url 'leads_crm:create' %}" class="btn btn-primary">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                </svg>
+                Add New Lead
+            </a>
+            <form method="post" action="{% url 'leads_crm:import' %}" enctype="multipart/form-data" class="flex items-center gap-2">
+                {% csrf_token %}
+                <input type="file" name="file" accept=".xlsx,.xlsm,.xltx,.xltm" class="file-input file-input-bordered file-input-sm" required>
+                <button type="submit" class="btn btn-outline btn-sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582M20 20v-5h-.581M4 9c1.886 1.365 3.774 2.73 5.66 4.095a2 2 0 002.68 0L18.34 9M4 20h16" />
+                    </svg>
+                    Import Excel
+                </button>
+            </form>
+        </div>
         {% endif %}
     </div>
     
@@ -215,11 +227,19 @@
                                 </div>
                             </td>
                             <td>
-                                {% if lead.assigned_to %}
-                                    <div class="text-sm">{{ lead.assigned_to.get_full_name|default:lead.assigned_to.email }}</div>
-                                {% else %}
-                                    <span class="text-gray-400">Unassigned</span>
-                                {% endif %}
+                                {% with assignees=lead.assigned_users.all %}
+                                    {% if assignees %}
+                                        <div class="flex flex-wrap gap-1">
+                                            {% for assignee in assignees %}
+                                                <span class="badge badge-outline">{{ assignee.get_full_name|default:assignee.email }}</span>
+                                            {% endfor %}
+                                        </div>
+                                    {% elif lead.assigned_to %}
+                                        <div class="text-sm">{{ lead.assigned_to.get_full_name|default:lead.assigned_to.email }}</div>
+                                    {% else %}
+                                        <span class="text-gray-400">Unassigned</span>
+                                    {% endif %}
+                                {% endwith %}
                             </td>
                             <td>
                                 <div class="text-sm">{{ lead.created_at|date:"M d, Y" }}</div>

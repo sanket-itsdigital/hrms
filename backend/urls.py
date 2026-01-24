@@ -14,6 +14,7 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+
 from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
@@ -23,41 +24,46 @@ from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
 
 schema_view = get_schema_view(
-   openapi.Info(
-      title="HRMS API",
-      default_version='v1',
-      description="HRMS (Human Resource Management System) API Documentation",
-      terms_of_service="https://www.google.com/policies/terms/",
-      contact=openapi.Contact(email="contact@hrms.local"),
-      license=openapi.License(name="BSD License"),
-   ),
-   public=True,
-   permission_classes=(permissions.AllowAny,),
+    openapi.Info(
+        title="HRMS API",
+        default_version="v1",
+        description="HRMS (Human Resource Management System) API Documentation",
+        terms_of_service="https://www.google.com/policies/terms/",
+        contact=openapi.Contact(email="contact@hrms.local"),
+        license=openapi.License(name="BSD License"),
+    ),
+    public=True,
+    permission_classes=(permissions.AllowAny,),
 )
 
 urlpatterns = [
     # Admin
-    path('admin/', admin.site.urls),
-    
+    path("admin/", admin.site.urls),
     # API Documentation (Swagger)
-    path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
-    path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
-    path('api/swagger.json', schema_view.without_ui(cache_timeout=0), name='schema-json'),
-    
+    path(
+        "swagger/",
+        schema_view.with_ui("swagger", cache_timeout=0),
+        name="schema-swagger-ui",
+    ),
+    path("redoc/", schema_view.with_ui("redoc", cache_timeout=0), name="schema-redoc"),
+    path(
+        "api/swagger.json", schema_view.without_ui(cache_timeout=0), name="schema-json"
+    ),
     # Web Routes (Dashboard & Auth)
-    path('', include('accounts.urls')),
-    path('api/organizations/', include('organizations.urls')),
-    path('api/projects/', include('projects.urls')),
-    path('api/tasks/', include('tasks.urls')),
-    path('api/attendance/', include('attendance.urls')),
-    path('api/leaves/', include('leaves.urls')),
-    path('api/payroll/', include('payroll.urls')),
-    path('api/daily-updates/', include('daily_updates.urls')),
-    path('api/leads/', include('leads_crm.urls')),
-    path('api/reports/', include('reports.urls')),
-    path('api/audit-logs/', include('auditlogs.urls')),
-    path('api/chat/', include('chat.urls')),
-    path('api/company/', include('company.urls')),
+    path("", include("accounts.urls")),
+    path("api/organizations/", include("organizations.urls")),
+    path("api/projects/", include("projects.urls")),
+    path("api/tasks/", include("tasks.urls")),
+    path("api/attendance/", include("attendance.urls")),
+    path("api/leaves/", include("leaves.urls")),
+    path("api/payroll/", include("payroll.urls")),
+    path("api/daily-updates/", include("daily_updates.urls")),
+    path("leads/", include("leads_crm.web_urls")),
+    path("api/leads/", include("leads_crm.api_urls")),
+    path("api/reports/", include("reports.urls")),
+    path("api/audit-logs/", include("auditlogs.urls")),
+    path("api/chat/", include("chat.urls")),
+    path("api/company/", include("company.urls")),
 ]
 
 # Serve media files in development

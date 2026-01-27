@@ -1,5 +1,5 @@
 """
-Role-based permissions configuration for HRMS.
+Role-based permissions configuration for Its Digital HRMS.
 Defines what each role can do in the system.
 """
 

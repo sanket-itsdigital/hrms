@@ -25,9 +25,9 @@ from drf_yasg import openapi
 
 schema_view = get_schema_view(
     openapi.Info(
-        title="HRMS API",
+        title="Its Digital API",
         default_version="v1",
-        description="HRMS (Human Resource Management System) API Documentation",
+        description="Its Digital (Human Resource Management System) API Documentation",
         terms_of_service="https://www.google.com/policies/terms/",
         contact=openapi.Contact(email="contact@hrms.local"),
         license=openapi.License(name="BSD License"),

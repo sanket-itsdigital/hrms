@@ -10,7 +10,7 @@ class Command(BaseCommand):
     help = 'Display all role permissions'
 
     def handle(self, *args, **options):
-        self.stdout.write(self.style.SUCCESS('\n=== HRMS Role Permissions ===\n'))
+        self.stdout.write(self.style.SUCCESS('\n=== Its Digital Role Permissions ===\n'))
         
         for role_name, role_perms in PERMISSIONS.items():
             self.stdout.write(self.style.HTTP_INFO(f'\n{"="*60}'))

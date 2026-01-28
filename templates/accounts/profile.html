@@ -33,61 +33,74 @@
                                 <img src="{{ user.profile_picture.url }}" alt="{{ user.get_full_name }}" />
                             </div>
                         {% else %}
-                            <div class="w-32 rounded-full ring ring-primary ring-offset-base-100 ring-offset-2 bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center">
-                                <span class="text-4xl font-bold text-white">{{ user.get_full_name|first|default:user.username|first|upper }}</span>
+                            <div class="w-32 h-32 min-w-[8rem] min-h-[8rem] rounded-full ring ring-primary ring-offset-base-100 ring-offset-2 bg-gradient-to-br from-purple-400 to-pink-400 shrink-0 grid place-items-center">
+                                <span class="text-4xl font-bold text-white select-none block w-full h-[8rem] leading-[8rem] text-center">{{ user.get_full_name|default:user.username|slice:":1"|upper }}</span>
                             </div>
                         {% endif %}
                     </div>
                     <h2 class="card-title text-2xl">{{ user.get_full_name|default:user.username }}</h2>
                     {% if user.role %}
-                        <div class="badge badge-primary badge-lg mt-2">{{ user.role.display_name }}</div>
+                        <p class="text-gray-600 mt-1">{{ user.role.display_name }}</p>
+                    {% elif user.designation %}
+                        <p class="text-gray-600 mt-1">{{ user.designation }}</p>
                     {% endif %}
-                    {% if user.designation %}
-                        <p class="text-gray-600 mt-2">{{ user.designation }}</p>
-                    {% endif %}
-                    {% if user.department %}
-                        <p class="text-sm text-gray-500">{{ user.department }}</p>
-                    {% endif %}
-                    
+
                     <div class="divider my-4"></div>
-                    
+
                     <!-- Account Information -->
                     <div class="w-full space-y-3 text-left">
                         <div>
-                            <p class="text-xs text-gray-500">Username</p>
-                            <p class="font-semibold">{{ user.username }}</p>
+                            <p class="text-xs text-gray-500 uppercase tracking-wide">Username</p>
+                            <p class="font-semibold text-gray-900">{{ user.username }}</p>
                         </div>
                         <div>
-                            <p class="text-xs text-gray-500">Email</p>
-                            <p class="font-semibold">{{ user.email }}</p>
+                            <p class="text-xs text-gray-500 uppercase tracking-wide">Email</p>
+                            <p class="font-semibold text-gray-900 break-all">{{ user.email }}</p>
                         </div>
                         {% if user.phone %}
                         <div>
-                            <p class="text-xs text-gray-500">Phone</p>
-                            <p class="font-semibold">{{ user.phone }}</p>
+                            <p class="text-xs text-gray-500 uppercase tracking-wide">Phone</p>
+                            <p class="font-semibold text-gray-900">{{ user.phone }}</p>
                         </div>
                         {% endif %}
                         {% if user.employee_id %}
                         <div>
-                            <p class="text-xs text-gray-500">Employee ID</p>
-                            <p class="font-semibold">{{ user.employee_id }}</p>
+                            <p class="text-xs text-gray-500 uppercase tracking-wide">Employee ID</p>
+                            <p class="font-semibold text-gray-900">{{ user.employee_id }}</p>
+                        </div>
+                        {% endif %}
+                        {% if user.designation and user.role and user.designation != user.role.display_name %}
+                        <div>
+                            <p class="text-xs text-gray-500 uppercase tracking-wide">Designation</p>
+                            <p class="font-semibold text-gray-900">{{ user.designation }}</p>
+                        </div>
+                        {% elif user.designation and not user.role %}
+                        <div>
+                            <p class="text-xs text-gray-500 uppercase tracking-wide">Designation</p>
+                            <p class="font-semibold text-gray-900">{{ user.designation }}</p>
+                        </div>
+                        {% endif %}
+                        {% if user.department %}
+                        <div>
+                            <p class="text-xs text-gray-500 uppercase tracking-wide">Department</p>
+                            <p class="font-semibold text-gray-900">{{ user.department }}</p>
                         </div>
                         {% endif %}
                         {% if user.organization %}
                         <div>
-                            <p class="text-xs text-gray-500">Organization</p>
-                            <p class="font-semibold">{{ user.organization.name }}</p>
+                            <p class="text-xs text-gray-500 uppercase tracking-wide">Organization</p>
+                            <p class="font-semibold text-gray-900">{{ user.organization.name }}</p>
                         </div>
                         {% endif %}
                         {% if user.date_of_joining %}
                         <div>
-                            <p class="text-xs text-gray-500">Date of Joining</p>
-                            <p class="font-semibold">{{ user.date_of_joining|date:"F d, Y" }}</p>
+                            <p class="text-xs text-gray-500 uppercase tracking-wide">Date of Joining</p>
+                            <p class="font-semibold text-gray-900">{{ user.date_of_joining|date:"F d, Y" }}</p>
                         </div>
                         {% endif %}
                         <div>
-                            <p class="text-xs text-gray-500">Member Since</p>
-                            <p class="font-semibold">{{ user.created_at|date:"F d, Y" }}</p>
+                            <p class="text-xs text-gray-500 uppercase tracking-wide">Member Since</p>
+                            <p class="font-semibold text-gray-900">{{ user.created_at|date:"F d, Y" }}</p>
                         </div>
                     </div>
                 </div>
@@ -97,7 +110,7 @@
         <!-- Edit Profile Form -->
         <div class="lg:col-span-2">
             <div class="card shadow-xl">
-                <div class="card-body">
+                <div class="card-body pb-8">
                     <h2 class="card-title text-2xl mb-4">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />

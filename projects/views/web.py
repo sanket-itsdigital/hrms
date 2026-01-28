@@ -43,10 +43,11 @@ def list_projects(request):
     elif user.is_dev or user.is_uiux:
         # Developers/UIUX see projects they're assigned to
         queryset = queryset.filter(assignments__user=user).distinct()
-    elif user.is_hr or user.is_bde:
-        # HR and BDE can see all projects (read-only)
+    elif user.is_bde:
+        # BDE can see all projects (read-only)
         pass
     else:
+        # HR and others: no access to projects
         queryset = Project.objects.none()
     
     # Filtering
@@ -117,13 +118,15 @@ def detail_project(request, id):
     
     # Check permissions
     if not user.is_ceo:
+        if user.is_hr:
+            return redirect('accounts:dashboard')
         if user.is_pm and project.project_manager != user:
             if not ProjectAssignment.objects.filter(project=project, user=user).exists():
                 return redirect('projects:list')
         elif user.is_dev or user.is_uiux:
             if not ProjectAssignment.objects.filter(project=project, user=user).exists():
                 return redirect('projects:list')
-        elif not (user.is_hr or user.is_bde):
+        elif not user.is_bde:
             return redirect('projects:list')
     
     # Get related data

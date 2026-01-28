@@ -56,15 +56,11 @@ class ProjectViewSet(viewsets.ModelViewSet):
         if user.is_dev or user.is_uiux:
             return queryset.filter(assignments__user=user).distinct()
         
-        # HR can see all projects (read-only)
-        if user.is_hr:
-            return queryset
-        
         # BDE can see all projects (read-only)
         if user.is_bde:
             return queryset
         
-        # Default: no projects
+        # HR and others: no access to projects
         return Project.objects.none()
     
     def get_permissions(self):

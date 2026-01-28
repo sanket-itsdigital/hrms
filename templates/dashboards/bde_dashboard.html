@@ -69,10 +69,10 @@
     
     <!-- Charts & Recent Activity -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div class="card bg-base-100 shadow-xl">
+        <div class="card bg-base-100 shadow-xl border border-gray-100">
             <div class="card-body">
-                <h2 class="card-title">Conversion Rate</h2>
-                <div class="chart-container">
+                <h2 class="card-title text-lg font-semibold text-gray-900">Conversion Rate</h2>
+                <div class="chart-container min-h-[280px] w-full">
                     <canvas id="conversionChart"></canvas>
                 </div>
             </div>
@@ -134,10 +134,14 @@
             </div>
         </div>
         
-        <div class="card bg-base-100 shadow-xl">
+        <div class="card bg-base-100 shadow-xl border border-gray-100">
             <div class="card-body">
-                <h2 class="card-title">Revenue Projection</h2>
-                <div class="chart-container">
+                <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+                    <h2 class="card-title text-lg font-semibold text-gray-900">Revenue Projection</h2>
+                    <span class="text-xs font-medium text-gray-500 uppercase tracking-wide">Next 6 months</span>
+                </div>
+                <p class="text-sm text-gray-500 mb-4">Estimated revenue based on pipeline and expected deals.</p>
+                <div class="chart-container min-h-[280px] w-full">
                     <canvas id="revenueProjectionChart"></canvas>
                 </div>
             </div>
@@ -174,24 +178,47 @@
     const revenueProjectionData = {
         labels: {{ revenue_projection_labels|safe }},
         datasets: [{
-            label: 'Projected Revenue',
+            label: 'Projected Revenue (₹)',
             data: {{ revenue_projection_data|safe }},
-            backgroundColor: 'hsla(var(--a) / 0.2)',
-            borderColor: 'hsl(var(--a))',
+            backgroundColor: 'rgba(139, 92, 246, 0.12)',
+            borderColor: 'rgb(139, 92, 246)',
             borderWidth: 2,
-            fill: true
+            fill: true,
+            tension: 0.35,
+            pointBackgroundColor: 'rgb(139, 92, 246)',
+            pointBorderColor: '#ffffff',
+            pointBorderWidth: 2,
+            pointRadius: 4,
+            pointHoverRadius: 6
         }]
     };
-    
+
     HRMS.createChart('revenueProjectionChart', 'line', revenueProjectionData, {
         plugins: {
             legend: {
-                display: true
+                display: true,
+                position: 'top'
+            },
+            tooltip: {
+                callbacks: {
+                    label: function(context) {
+                        return '₹' + Number(context.raw).toLocaleString('en-IN');
+                    }
+                }
             }
         },
         scales: {
             y: {
-                beginAtZero: true
+                beginAtZero: true,
+                grid: { color: 'rgba(0, 0, 0, 0.06)' },
+                ticks: {
+                    callback: function(value) {
+                        return '₹' + Number(value).toLocaleString('en-IN');
+                    }
+                }
+            },
+            x: {
+                grid: { display: false }
             }
         }
     });

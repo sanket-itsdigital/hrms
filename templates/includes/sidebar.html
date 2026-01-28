@@ -29,7 +29,7 @@
                 </a>
             </li>
             
-            {% if user.is_ceo or user.is_hr or user.is_pm %}
+            {% if user.is_ceo or user.is_pm %}
             <!-- Projects -->
             <li>
                 <a href="{% url 'projects:list' %}" class="{% if 'project' in request.path and 'api-docs' not in request.path %}active{% endif %}">
@@ -102,13 +102,22 @@
             {% endif %}
             
             {% if user.is_ceo or user.is_hr %}
-            <!-- Attendance (calendar view with user filter) -->
+            <!-- Attendance (calendar view with user filter - manage all) -->
             <li>
-                <a href="{% url 'attendance:calendar' %}" class="{% if 'attendance' in request.path %}active{% endif %}">
+                <a href="{% url 'attendance:calendar' %}" class="{% if request.resolver_match.url_name == 'calendar' %}active{% endif %}">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
                     Attendance
+                </a>
+            </li>
+            <!-- My Attendance (punch in/out - CEO/HR also punch like others) -->
+            <li>
+                <a href="{% url 'attendance:my-attendance' %}" class="{% if 'my-attendance' in request.path %}active{% endif %}">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    My Attendance
                 </a>
             </li>
             {% else %}

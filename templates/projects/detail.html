@@ -182,12 +182,15 @@
                             </p>
                         </div>
                         {% endif %}
-                        
+
+                        {% if request.user.is_ceo %}
                         {% if project.budget %}
+                        
                         <div>
                             <span class="text-sm font-medium text-gray-600">Budget:</span>
                             <p class="text-gray-900">₹{{ project.budget|floatformat:2 }}</p>
                         </div>
+                        {% endif %}
                         {% endif %}
                         
                         <div>
@@ -384,6 +387,7 @@
     </div>
     
     <!-- Payments Section -->
+    {% if request.user.is_ceo %}
     <div class="card shadow-xl">
         <div class="card-body">
             <div class="flex justify-between items-center mb-4">
@@ -486,5 +490,6 @@
             {% endif %}
         </div>
     </div>
+    {% endif %}
 </div>
 {% endblock %}

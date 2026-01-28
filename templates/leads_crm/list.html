@@ -170,7 +170,7 @@
                             <th>Name</th>
                             <th>Company</th>
                             <th>Contact</th>
-                            <th>Stage</th>
+                            <th class="min-w-[120px]">Stage</th>
                             <th>Expected Revenue</th>
                             <th>Probability</th>
                             <th>Assigned To</th>
@@ -198,7 +198,7 @@
                                 <div class="text-xs text-gray-500">{{ lead.phone }}</div>
                                 {% endif %}
                             </td>
-                            <td>
+                            <td class="whitespace-nowrap min-w-[120px]">
                                 {% if lead.stage == 'NEW' %}
                                     <span class="badge badge-info">{{ lead.get_stage_display }}</span>
                                 {% elif lead.stage == 'CONTACTED' %}
@@ -211,6 +211,8 @@
                                     <span class="badge badge-success">{{ lead.get_stage_display }}</span>
                                 {% elif lead.stage == 'CLOSED_LOST' %}
                                     <span class="badge badge-error">{{ lead.get_stage_display }}</span>
+                                {% else %}
+                                    <span class="badge badge-ghost">{{ lead.get_stage_display|default:lead.stage }}</span>
                                 {% endif %}
                             </td>
                             <td>

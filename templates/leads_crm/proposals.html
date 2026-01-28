@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% block title %}Proposals - Its Digital{% endblock %}
+
+{% block page_header %}
+<div class="mb-6">
+    <h1 class="text-3xl font-bold">Proposals</h1>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="space-y-4">
+    {% if proposals %}
+        {% for p in proposals %}
+        <div class="card bg-base-200">
+            <div class="card-body p-3">
+                <div class="flex justify-between">
+                    <div>
+                        <h4 class="font-semibold">{{ p.lead.name }}</h4>
+                        <p class="text-sm text-base-content/60">{{ p.lead.company_name }}</p>
+                    </div>
+                    <div class="text-sm text-base-content/50">
+                        Sent: {{ p.sent_at|date:"M d, Y" }}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+    <div class="empty-state">No proposals found.</div>
+    {% endif %}
+</div>
+{% endblock %}

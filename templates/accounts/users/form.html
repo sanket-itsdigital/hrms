@@ -200,6 +200,21 @@
                     
                     <div class="form-control">
                         <label class="label">
+                            <span class="label-text font-medium">Salary (Monthly)</span>
+                        </label>
+                        {{ form.salary }}
+                        {% if form.salary.errors %}
+                            <label class="label">
+                                <span class="label-text-alt text-error">{{ form.salary.errors }}</span>
+                            </label>
+                        {% endif %}
+                        <label class="label">
+                            <span class="label-text-alt text-gray-500">Used for payroll generation</span>
+                        </label>
+                    </div>
+                    
+                    <div class="form-control">
+                        <label class="label">
                             <span class="label-text font-medium">Profile Picture</span>
                         </label>
                         {{ form.profile_picture }}

@@ -86,19 +86,19 @@
                     </label>
                 </div>
                 
-                <!-- Figma Link -->
+                <!-- Link -->
                 <div class="form-control">
                     <label class="label">
-                        <span class="label-text font-medium">Figma Link</span>
+                        <span class="label-text font-medium">Link</span>
                     </label>
                     {{ form.figma_link }}
                     {% if form.figma_link.errors %}
-                        <label class="label">
-                            <span class="label-text-alt text-error">{{ form.figma_link.errors }}</span>
-                        </label>
+                    <label class="label">
+                        <span class="label-text-alt text-error">{{ form.figma_link.errors }}</span>
+                    </label>
                     {% endif %}
                     <label class="label">
-                        <span class="label-text-alt text-gray-500">Link to Figma design (for UI/UX team)</span>
+                        <span class="label-text-alt text-gray-500">Optional link (e.g. Figma, design, reference)</span>
                     </label>
                 </div>
                 

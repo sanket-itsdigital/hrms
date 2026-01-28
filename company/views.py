@@ -6,9 +6,9 @@ from django.utils import timezone
 from django.core.paginator import Paginator
 from datetime import datetime, timedelta
 
-from company.models import Announcement, Policy, Holiday, Event, BirthdayAnniversary
+from company.models import Announcement, Policy, Holiday, RecurringHolidayRule, Event, BirthdayAnniversary
 from company.forms import (
-    AnnouncementForm, PolicyForm, HolidayForm,
+    AnnouncementForm, PolicyForm, HolidayForm, RecurringHolidayRuleForm,
     EventForm, BirthdayAnniversaryForm
 )
 from accounts.models import User
@@ -448,6 +448,50 @@ def holiday_delete(request, id):
     }
     
     return render(request, 'company/holidays/delete_confirm.html', context)
+
+
+@login_required
+def recurring_holiday_create(request):
+    """Add a recurring holiday rule e.g. 2nd Saturday, 4th Saturday (CEO/HR only)."""
+    user = request.user
+    if not user.is_ceo and not user.is_hr:
+        messages.error(request, 'You do not have permission to add recurring holidays.')
+        return redirect('company:holidays_list')
+    if not user.organization:
+        messages.error(request, 'You are not associated with an organization.')
+        return redirect('accounts:dashboard')
+
+    if request.method == 'POST':
+        form = RecurringHolidayRuleForm(request.POST)
+        if form.is_valid():
+            rule = form.save(commit=False)
+            rule.organization = user.organization
+            rule.save()
+            messages.success(request, f'Recurring holiday "{rule.name}" added. All users will see these days as holiday.')
+            return redirect('company:holidays_list')
+    else:
+        form = RecurringHolidayRuleForm()
+    context = {'form': form, 'title': 'Add Recurring Holiday (e.g. 2nd & 4th Saturday)'}
+    return render(request, 'company/holidays/recurring_form.html', context)
+
+
+@login_required
+def recurring_holiday_delete(request, id):
+    """Delete a recurring holiday rule (CEO/HR only)."""
+    user = request.user
+    if not user.is_ceo and not user.is_hr:
+        messages.error(request, 'You do not have permission to delete recurring holidays.')
+        return redirect('company:holidays_list')
+    rule = get_object_or_404(RecurringHolidayRule, id=id)
+    if rule.organization_id != user.organization_id:
+        messages.error(request, 'Not found.')
+        return redirect('company:holidays_list')
+    if request.method == 'POST':
+        name = rule.name
+        rule.delete()
+        messages.success(request, f'Recurring holiday "{name}" removed.')
+        return redirect('company:holidays_list')
+    return render(request, 'company/holidays/recurring_delete_confirm.html', {'rule': rule})
 
 
 # ==================== EVENTS ====================

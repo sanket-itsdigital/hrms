@@ -1,0 +1,146 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Payroll - {{ payroll.get_month_display }} {{ payroll.year }} - Its Digital{% endblock %}
+
+{% block page_header %}
+<div class="mb-6">
+    <div class="flex justify-between items-center mb-4">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-900 flex items-center gap-3 mb-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                Payroll Details
+            </h1>
+            <div class="breadcrumbs text-sm">
+                <ul>
+                    <li><a href="{% url 'accounts:dashboard' %}" class="text-gray-500 hover:text-gray-700">Dashboard</a></li>
+                    {% if user.is_ceo or user.is_hr %}
+                    <li><a href="{% url 'payroll:list' %}" class="text-gray-500 hover:text-gray-700">Payroll</a></li>
+                    {% else %}
+                    <li><a href="{% url 'payroll:my-payroll' %}" class="text-gray-500 hover:text-gray-700">My Payroll</a></li>
+                    {% endif %}
+                    <li class="text-gray-400">{{ payroll.get_month_display }} {{ payroll.year }}</li>
+                </ul>
+            </div>
+        </div>
+        <div>
+            {% if user.is_ceo or user.is_hr %}
+            <a href="{% url 'payroll:list' %}" class="btn btn-ghost">Back to Payroll</a>
+            {% else %}
+            <a href="{% url 'payroll:my-payroll' %}" class="btn btn-ghost">Back to My Payroll</a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <div class="card shadow-lg">
+        <div class="card-body">
+            <!-- Header: Period & Employee -->
+            <div class="border-b border-base-300 pb-4 mb-4">
+                <div class="flex justify-between items-start flex-wrap gap-4">
+                    <div>
+                        <h2 class="text-xl font-bold text-gray-900">{{ payroll.get_month_display }} {{ payroll.year }}</h2>
+                        <p class="text-gray-500 text-sm">Pay period</p>
+                    </div>
+                    <div class="text-right">
+                        <span class="badge {% if payroll.status == 'DRAFT' %}badge-neutral{% elif payroll.status == 'PROCESSED' %}badge-info{% elif payroll.status == 'PAID' %}badge-success{% else %}badge-error{% endif %} text-sm px-3 py-2">
+                            {{ payroll.get_status_display }}
+                        </span>
+                    </div>
+                </div>
+                <div class="mt-2">
+                    <p class="font-semibold text-gray-800">{{ payroll.user.get_full_name|default:payroll.user.email }}</p>
+                    <p class="text-sm text-gray-500">{{ payroll.user.email }}</p>
+                </div>
+            </div>
+
+            <!-- Earnings & Deductions -->
+            <div class="space-y-3">
+                <div class="flex justify-between items-center py-2">
+                    <span class="text-gray-700">Base Salary</span>
+                    <span class="font-semibold">₹{{ payroll.base_salary|floatformat:0 }}</span>
+                </div>
+                <div class="flex justify-between items-center py-2">
+                    <span class="text-gray-700">Bonuses</span>
+                    <span class="font-semibold text-green-600">+₹{{ payroll.bonuses|floatformat:0 }}</span>
+                </div>
+                <div class="flex justify-between items-center py-2 border-t border-base-200 pt-3">
+                    <span class="font-medium text-gray-800">Gross Salary</span>
+                    <span class="font-bold">₹{{ payroll.gross_salary|floatformat:0 }}</span>
+                </div>
+                <div class="flex justify-between items-center py-2">
+                    <span class="text-gray-700">Deductions</span>
+                    <span class="font-semibold text-red-600">−₹{{ payroll.deductions|floatformat:0 }}</span>
+                </div>
+                <div class="flex justify-between items-center py-2">
+                    <span class="text-gray-700" title="Based on working days present (Sundays excluded)">Attendance Deduction</span>
+                    <span class="font-semibold text-orange-600">−₹{{ payroll.attendance_deduction|floatformat:0 }}</span>
+                </div>
+                <div class="flex justify-between items-center py-4 border-t-2 border-primary mt-4">
+                    <span class="font-bold text-lg text-gray-900">Net Salary</span>
+                    <span class="font-bold text-xl text-primary">₹{{ payroll.net_salary|floatformat:0 }}</span>
+                </div>
+            </div>
+
+            <!-- Attendance breakdown & calculation (e.g. 2 present × per day = salary) -->
+            {% if calculation %}
+            <div class="mt-6 pt-4 border-t-2 border-base-200">
+                <h3 class="font-bold text-gray-900 mb-3">Attendance &amp; calculation</h3>
+                <div class="bg-base-200/50 rounded-lg p-4 space-y-3 text-sm">
+                    <div class="grid grid-cols-2 gap-x-4 gap-y-1">
+                        <span class="text-gray-600">Total month days</span>
+                        <span class="font-medium">{{ calculation.days.total_days_in_month }}</span>
+                        <span class="text-gray-600">Working days in month</span>
+                        <span class="font-medium">{{ calculation.days.working_days_in_month }}</span>
+                        <span class="text-gray-600">Sundays (holiday)</span>
+                        <span class="font-medium">{{ calculation.days.sundays_holiday }}</span>
+                        <span class="text-gray-600">Holidays (Sat off / national)</span>
+                        <span class="font-medium">{{ calculation.days.company_holidays|default:0 }}</span>
+                    </div>
+                    <div class="pt-2 border-t border-base-300">
+                        <p class="text-gray-600 mb-2">Days breakdown</p>
+                        <ul class="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-1">
+                            <li><span class="text-green-600 font-medium">Present:</span> {{ calculation.attendance_breakdown.present }}</li>
+                            <li><span class="text-blue-600 font-medium">Late:</span> {{ calculation.attendance_breakdown.late }}</li>
+                            <li><span class="text-indigo-600 font-medium">Work from home:</span> {{ calculation.attendance_breakdown.work_from_home }}</li>
+                            <li><span class="text-amber-600 font-medium">Half day:</span> {{ calculation.attendance_breakdown.half_day }}</li>
+                            <li><span class="text-red-600 font-medium">Absent:</span> {{ calculation.attendance_breakdown.absent }}</li>
+                            <li><span class="text-gray-600 font-medium">Leave:</span> {{ calculation.attendance_breakdown.leave }}</li>
+                        </ul>
+                    </div>
+                    <div class="pt-2 border-t border-base-300 space-y-1">
+                        <p><span class="text-gray-600">Per day salary</span> = Base ÷ number of days in month = <strong>₹{{ calculation.per_day_salary }}</strong></p>
+                        <p><span class="text-gray-600">Effective days</span> (Present + Late + WFH + 0.5×Half day + Sundays + Holidays) = <strong>{{ calculation.effective_days }} days</strong></p>
+                        <p class="font-semibold text-primary pt-1">
+                            {{ calculation.effective_days }} days × ₹{{ calculation.per_day_salary }} = <strong>₹{{ calculation.calculated_salary_from_attendance }}</strong> (pay from attendance)
+                        </p>
+                        <p class="text-orange-600 font-medium">
+                            Attendance deduction = Base salary − pay from attendance = ₹{{ calculation.attendance_deduction }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            {% if payroll.notes %}
+            <div class="mt-4 pt-4 border-t border-base-200">
+                <p class="text-sm font-medium text-gray-600 mb-1">Notes</p>
+                <p class="text-gray-700 whitespace-pre-wrap">{{ payroll.notes }}</p>
+            </div>
+            {% endif %}
+
+            {% if payroll.processed_by %}
+            <div class="mt-4 pt-4 border-t border-base-200 text-sm text-gray-500">
+                Processed by {{ payroll.processed_by.get_full_name|default:payroll.processed_by.email }}
+                {% if payroll.processed_at %} on {{ payroll.processed_at|date:"M d, Y" }}{% endif %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

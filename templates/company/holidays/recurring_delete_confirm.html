@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Remove recurring holiday - Its Digital{% endblock %}
+
+{% block content %}
+<div class="max-w-lg mx-auto">
+    <div class="card shadow-xl">
+        <div class="card-body">
+            <h2 class="card-title text-gray-800">Remove recurring holiday</h2>
+            <p class="text-gray-600">Are you sure you want to remove <strong>{{ rule.name }}</strong> ({{ rule.get_weekday_display }}, {{ rule.week_of_month }}{% if rule.week_of_month == 1 %}st{% elif rule.week_of_month == 2 %}nd{% elif rule.week_of_month == 3 %}rd{% else %}th{% endif %} of each month)? These days will no longer appear as holiday for users.</p>
+            <form method="post" class="flex justify-end gap-4 mt-4">
+                {% csrf_token %}
+                <a href="{% url 'company:holidays_list' %}" class="btn btn-ghost">Cancel</a>
+                <button type="submit" class="btn btn-error">Remove</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

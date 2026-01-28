@@ -174,50 +174,32 @@ Its Digital{% endblock %} {% block page_header %}
             <label class="label">
               <span class="label-text font-medium">Assign To (multiple)</span>
             </label>
-            <div class="relative w-full" id="assignee-dropdown">
-              <button
-                type="button"
-                class="btn btn-outline w-full justify-between"
-                data-toggle-assignees
-              >
-                <span class="font-medium">Select assignees</span>
-                <span class="text-sm text-gray-500">(uses checkboxes)</span>
+            <div class="relative w-full team-select-dropdown" data-field="assigned_users">
+              <button type="button" class="btn btn-outline w-full justify-between text-left" data-toggle>
+                <span class="truncate" data-label>Select assignees (<span data-count>0</span> selected)</span>
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
               </button>
-              <div
-                class="absolute left-0 right-0 mt-2 rounded-xl bg-base-100 shadow hidden"
-                data-assignees-menu
-              >
-                <div
-                  class="max-h-64 overflow-y-auto p-3 grid grid-cols-1 md:grid-cols-2 gap-2"
-                >
-                  {% for checkbox in form.assigned_users %}
-                  <label
-                    class="flex items-center gap-3 p-2 border rounded-lg hover:bg-gray-50"
-                  >
-                    {{ checkbox.tag }}
-                    <span class="text-sm">{{ checkbox.choice_label }}</span>
-                  </label>
+              <div class="absolute left-0 right-0 mt-1 z-20 rounded-box border border-base-300 bg-base-100 shadow-lg hidden max-h-64 overflow-y-auto" data-menu>
+                <ul class="p-2 menu bg-base-100">
+                  {% for choice in form.assigned_users %}
+                  <li class="rounded-lg">
+                    <label class="flex items-center gap-3 p-2 cursor-pointer hover:bg-base-200 rounded-lg">
+                      {{ choice.tag }}
+                      <span class="text-sm">{{ choice.choice_label }}</span>
+                    </label>
+                  </li>
+                  {% empty %}
+                  <li class="p-2 text-sm text-gray-500">No users available</li>
                   {% endfor %}
-                </div>
+                </ul>
               </div>
             </div>
-            <div class="mt-2 text-sm text-gray-600">
-              Selected:
-              {% if form.instance.pk and form.instance.assigned_users.all %}
-                {% for u in form.instance.assigned_users.all %}
-                  <span class="badge badge-outline mr-1">{{ u.get_full_name|default:u.email }}</span>
-                {% empty %}
-                  <span class="text-gray-400">None</span>
-                {% endfor %}
-              {% else %}
-                <span class="text-gray-400">None yet</span>
-              {% endif %}
-            </div>
+            <label class="label">
+              <span class="label-text-alt text-gray-500">Click dropdown to select multiple users</span>
+            </label>
             {% if form.assigned_users.errors %}
             <label class="label">
-              <span class="label-text-alt text-error"
-                >{{ form.assigned_users.errors }}</span
-              >
+              <span class="label-text-alt text-error">{{ form.assigned_users.errors }}</span>
             </label>
             {% endif %}
           </div>
@@ -266,26 +248,39 @@ Its Digital{% endblock %} {% block page_header %}
 
 {% endblock %} {% block extra_js %} {{ block.super }}
 <script>
-  (function () {
-    const dropdown = document.querySelector("#assignee-dropdown");
-    if (!dropdown) return;
-    const toggle = dropdown.querySelector("[data-toggle-assignees]");
-    const menu = dropdown.querySelector("[data-assignees-menu]");
+(function() {
+  document.querySelectorAll(".team-select-dropdown").forEach(function(dropdown) {
+    var toggle = dropdown.querySelector("[data-toggle]");
+    var menu = dropdown.querySelector("[data-menu]");
+    var countEl = dropdown.querySelector("[data-count]");
 
-    const closeMenu = () => menu.classList.add("hidden");
-    const openMenu = () => menu.classList.remove("hidden");
-    const toggleMenu = () => menu.classList.toggle("hidden");
+    function updateCount() {
+      var n = dropdown.querySelectorAll('input[type="checkbox"]:checked').length;
+      if (countEl) countEl.textContent = n;
+    }
 
-    toggle.addEventListener("click", (e) => {
-      e.preventDefault();
-      toggleMenu();
-    });
+    function toggleMenu() { menu.classList.toggle("hidden"); }
 
-    document.addEventListener("click", (e) => {
-      if (!dropdown.contains(e.target)) {
-        closeMenu();
-      }
-    });
-  })();
+    if (toggle && menu) {
+      toggle.addEventListener("click", function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        toggleMenu();
+      });
+      dropdown.querySelectorAll('input[type="checkbox"]').forEach(function(cb) {
+        cb.addEventListener("change", updateCount);
+      });
+      updateCount();
+    }
+  });
+
+  document.addEventListener("click", function(e) {
+    if (!e.target.closest(".team-select-dropdown")) {
+      document.querySelectorAll(".team-select-dropdown [data-menu]").forEach(function(menu) {
+        menu.classList.add("hidden");
+      });
+    }
+  });
+})();
 </script>
 {% endblock %}

@@ -168,61 +168,108 @@
                 <div class="divider"></div>
                 <div class="space-y-4">
                     <h2 class="text-xl font-semibold text-gray-800 mb-4">Team Member Assignments</h2>
-                    <p class="text-sm text-gray-600 mb-4">Assign developers, UI/UX designers, and BDE users to this project.</p>
+                    <p class="text-sm text-gray-600 mb-4">Assign developers, UI/UX designers, and BDE users to this project. Click each dropdown to select multiple users.</p>
                     
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <!-- Developers dropdown -->
                         <div class="form-control">
                             <label class="label">
                                 <span class="label-text font-medium">Developers</span>
                             </label>
-                            {{ form.developers }}
-                            {% if form.developers.errors %}
-                                <label class="label">
-                                    <span class="label-text-alt text-error">{{ form.developers.errors }}</span>
-                                </label>
-                            {% endif %}
+                            <div class="relative w-full team-select-dropdown" data-field="developers">
+                                <button type="button" class="btn btn-outline w-full justify-between text-left" data-toggle>
+                                    <span class="truncate" data-label>Select developers (<span data-count>0</span> selected)</span>
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                                </button>
+                                <div class="absolute left-0 right-0 mt-1 z-20 rounded-box border border-base-300 bg-base-100 shadow-lg hidden max-h-64 overflow-y-auto" data-menu>
+                                    <ul class="p-2 menu bg-base-100">
+                                        {% for choice in form.developers %}
+                                        <li class="rounded-lg">
+                                            <label class="flex items-center gap-3 p-2 cursor-pointer hover:bg-base-200 rounded-lg">
+                                                {{ choice.tag }}
+                                                <span class="text-sm">{{ choice.choice_label }}</span>
+                                            </label>
+                                        </li>
+                                        {% empty %}
+                                        <li class="p-2 text-sm text-gray-500">No developers available</li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                            </div>
                             {% if form.developers.help_text %}
-                                <label class="label">
-                                    <span class="label-text-alt text-gray-500">{{ form.developers.help_text }}</span>
-                                </label>
+                                <label class="label"><span class="label-text-alt text-gray-500">{{ form.developers.help_text }}</span></label>
+                            {% endif %}
+                            {% if form.developers.errors %}
+                                <label class="label"><span class="label-text-alt text-error">{{ form.developers.errors }}</span></label>
                             {% endif %}
                         </div>
-                        
+
+                        <!-- UI/UX Designers dropdown -->
                         <div class="form-control">
                             <label class="label">
                                 <span class="label-text font-medium">UI/UX Designers</span>
                             </label>
-                            {{ form.uiux_designers }}
-                            {% if form.uiux_designers.errors %}
-                                <label class="label">
-                                    <span class="label-text-alt text-error">{{ form.uiux_designers.errors }}</span>
-                                </label>
-                            {% endif %}
+                            <div class="relative w-full team-select-dropdown" data-field="uiux_designers">
+                                <button type="button" class="btn btn-outline w-full justify-between text-left" data-toggle>
+                                    <span class="truncate" data-label>Select UI/UX (<span data-count>0</span> selected)</span>
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                                </button>
+                                <div class="absolute left-0 right-0 mt-1 z-20 rounded-box border border-base-300 bg-base-100 shadow-lg hidden max-h-64 overflow-y-auto" data-menu>
+                                    <ul class="p-2 menu bg-base-100">
+                                        {% for choice in form.uiux_designers %}
+                                        <li class="rounded-lg">
+                                            <label class="flex items-center gap-3 p-2 cursor-pointer hover:bg-base-200 rounded-lg">
+                                                {{ choice.tag }}
+                                                <span class="text-sm">{{ choice.choice_label }}</span>
+                                            </label>
+                                        </li>
+                                        {% empty %}
+                                        <li class="p-2 text-sm text-gray-500">No UI/UX designers available</li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                            </div>
                             {% if form.uiux_designers.help_text %}
-                                <label class="label">
-                                    <span class="label-text-alt text-gray-500">{{ form.uiux_designers.help_text }}</span>
-                                </label>
+                                <label class="label"><span class="label-text-alt text-gray-500">{{ form.uiux_designers.help_text }}</span></label>
+                            {% endif %}
+                            {% if form.uiux_designers.errors %}
+                                <label class="label"><span class="label-text-alt text-error">{{ form.uiux_designers.errors }}</span></label>
                             {% endif %}
                         </div>
-                        
+
+                        <!-- BDE Users dropdown -->
                         <div class="form-control">
                             <label class="label">
                                 <span class="label-text font-medium">BDE Users</span>
                             </label>
-                            {{ form.bde_users }}
-                            {% if form.bde_users.errors %}
-                                <label class="label">
-                                    <span class="label-text-alt text-error">{{ form.bde_users.errors }}</span>
-                                </label>
-                            {% endif %}
+                            <div class="relative w-full team-select-dropdown" data-field="bde_users">
+                                <button type="button" class="btn btn-outline w-full justify-between text-left" data-toggle>
+                                    <span class="truncate" data-label>Select BDE users (<span data-count>0</span> selected)</span>
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                                </button>
+                                <div class="absolute left-0 right-0 mt-1 z-20 rounded-box border border-base-300 bg-base-100 shadow-lg hidden max-h-64 overflow-y-auto" data-menu>
+                                    <ul class="p-2 menu bg-base-100">
+                                        {% for choice in form.bde_users %}
+                                        <li class="rounded-lg">
+                                            <label class="flex items-center gap-3 p-2 cursor-pointer hover:bg-base-200 rounded-lg">
+                                                {{ choice.tag }}
+                                                <span class="text-sm">{{ choice.choice_label }}</span>
+                                            </label>
+                                        </li>
+                                        {% empty %}
+                                        <li class="p-2 text-sm text-gray-500">No BDE users available</li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                            </div>
                             {% if form.bde_users.help_text %}
-                                <label class="label">
-                                    <span class="label-text-alt text-gray-500">{{ form.bde_users.help_text }}</span>
-                                </label>
+                                <label class="label"><span class="label-text-alt text-gray-500">{{ form.bde_users.help_text }}</span></label>
+                            {% endif %}
+                            {% if form.bde_users.errors %}
+                                <label class="label"><span class="label-text-alt text-error">{{ form.bde_users.errors }}</span></label>
                             {% endif %}
                         </div>
                     </div>
-                    <p class="text-xs text-gray-500 mt-2">💡 Hold Ctrl (Windows) or Cmd (Mac) to select multiple users</p>
                 </div>
                 {% endif %}
                 
@@ -299,4 +346,46 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function() {
+  document.querySelectorAll(".team-select-dropdown").forEach(function(dropdown) {
+    var toggle = dropdown.querySelector("[data-toggle]");
+    var menu = dropdown.querySelector("[data-menu]");
+    var countEl = dropdown.querySelector("[data-count]");
+    var checkboxes = dropdown.querySelectorAll('input[type="checkbox"]');
+
+    function updateCount() {
+      var n = dropdown.querySelectorAll('input[type="checkbox"]:checked').length;
+      if (countEl) countEl.textContent = n;
+    }
+
+    function openMenu() { menu.classList.remove("hidden"); }
+    function closeMenu() { menu.classList.add("hidden"); }
+    function toggleMenu() { menu.classList.toggle("hidden"); }
+
+    if (toggle && menu) {
+      toggle.addEventListener("click", function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        toggleMenu();
+      });
+      checkboxes.forEach(function(cb) {
+        cb.addEventListener("change", updateCount);
+      });
+      updateCount();
+    }
+  });
+
+  document.addEventListener("click", function(e) {
+    if (!e.target.closest(".team-select-dropdown")) {
+      document.querySelectorAll(".team-select-dropdown [data-menu]").forEach(function(menu) {
+        menu.classList.add("hidden");
+      });
+    }
+  });
+})();
+</script>
 {% endblock %}

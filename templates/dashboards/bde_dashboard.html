@@ -66,114 +66,7 @@
             <div class="stat-value text-3xl">{{ followups_today }}</div>
         </div>
     </div>
-
-    <!-- Leads Pipeline Kanban -->
-    <div class="card bg-base-100 shadow-xl">
-        <div class="card-body">
-            <div class="flex justify-between items-center mb-4">
-                <h2 class="card-title">Leads Pipeline</h2>
-                <a href="{% url 'leads_crm:list' %}" class="btn btn-sm btn-ghost">View All</a>
-            </div>
-            <div class="kanban-board">
-                <div class="kanban-column" data-status="NEW">
-                    <div class="kanban-column-header">
-                        <h6>New</h6>
-                        <span class="badge badge-secondary">{{ leads_by_stage.NEW|default:0 }}</span>
-                    </div>
-                    <div class="kanban-items">
-                        {% for lead in leads %}
-                            {% if lead.stage == 'NEW' %}
-                            <div class="kanban-item" data-item-id="{{ lead.id }}">
-                                <h6 class="font-semibold">{{ lead.name }}</h6>
-                                <p class="text-xs text-base-content/60 mt-1">{{ lead.company_name }}</p>
-                                <div class="text-xs text-base-content/50 mt-2">
-                                    Expected: ₹{{ lead.expected_revenue|floatformat:0|default:"0" }}
-                                </div>
-                            </div>
-                            {% endif %}
-                        {% endfor %}
-                    </div>
-                </div>
-                <div class="kanban-column" data-status="CONTACTED">
-                    <div class="kanban-column-header">
-                        <h6>Contacted</h6>
-                        <span class="badge badge-info">{{ leads_by_stage.CONTACTED|default:0 }}</span>
-                    </div>
-                    <div class="kanban-items">
-                        {% for lead in leads %}
-                            {% if lead.stage == 'CONTACTED' %}
-                            <div class="kanban-item" data-item-id="{{ lead.id }}">
-                                <h6 class="font-semibold">{{ lead.name }}</h6>
-                                <p class="text-xs text-base-content/60 mt-1">{{ lead.company_name }}</p>
-                                <div class="text-xs text-base-content/50 mt-2">
-                                    Expected: ₹{{ lead.expected_revenue|floatformat:0|default:"0" }}
-                                </div>
-                            </div>
-                            {% endif %}
-                        {% endfor %}
-                    </div>
-                </div>
-                <div class="kanban-column" data-status="PROPOSAL_SENT">
-                    <div class="kanban-column-header">
-                        <h6>Proposal Sent</h6>
-                        <span class="badge badge-warning">{{ leads_by_stage.PROPOSAL_SENT|default:0 }}</span>
-                    </div>
-                    <div class="kanban-items">
-                        {% for lead in leads %}
-                            {% if lead.stage == 'PROPOSAL_SENT' %}
-                            <div class="kanban-item" data-item-id="{{ lead.id }}">
-                                <h6 class="font-semibold">{{ lead.name }}</h6>
-                                <p class="text-xs text-base-content/60 mt-1">{{ lead.company_name }}</p>
-                                <div class="text-xs text-base-content/50 mt-2">
-                                    Expected: ₹{{ lead.expected_revenue|floatformat:0|default:"0" }}
-                                </div>
-                            </div>
-                            {% endif %}
-                        {% endfor %}
-                    </div>
-                </div>
-                <div class="kanban-column" data-status="NEGOTIATION">
-                    <div class="kanban-column-header">
-                        <h6>Negotiation</h6>
-                        <span class="badge badge-primary">{{ leads_by_stage.NEGOTIATION|default:0 }}</span>
-                    </div>
-                    <div class="kanban-items">
-                        {% for lead in leads %}
-                            {% if lead.stage == 'NEGOTIATION' %}
-                            <div class="kanban-item" data-item-id="{{ lead.id }}">
-                                <h6 class="font-semibold">{{ lead.name }}</h6>
-                                <p class="text-xs text-base-content/60 mt-1">{{ lead.company_name }}</p>
-                                <div class="text-xs text-base-content/50 mt-2">
-                                    Expected: ₹{{ lead.expected_revenue|floatformat:0|default:"0" }}
-                                </div>
-                            </div>
-                            {% endif %}
-                        {% endfor %}
-                    </div>
-                </div>
-                <div class="kanban-column" data-status="CLOSED_WON">
-                    <div class="kanban-column-header">
-                        <h6>Won</h6>
-                        <span class="badge badge-success">{{ leads_by_stage.CLOSED_WON|default:0 }}</span>
-                    </div>
-                    <div class="kanban-items">
-                        {% for lead in leads %}
-                            {% if lead.stage == 'CLOSED_WON' %}
-                            <div class="kanban-item" data-item-id="{{ lead.id }}">
-                                <h6 class="font-semibold">{{ lead.name }}</h6>
-                                <p class="text-xs text-base-content/60 mt-1">{{ lead.company_name }}</p>
-                                <div class="text-xs text-success mt-2">
-                                    Won: ₹{{ lead.expected_revenue|floatformat:0|default:"0" }}
-                                </div>
-                            </div>
-                            {% endif %}
-                        {% endfor %}
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
+    
     <!-- Charts & Recent Activity -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div class="card bg-base-100 shadow-xl">
@@ -230,18 +123,6 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                         </svg>
                         Add New Lead
-                    </a>
-                    <a href="{% url 'leads_crm:proposals' %}" class="btn btn-outline btn-block">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                        </svg>
-                        Create Proposal
-                    </a>
-                    <a href="{% url 'leads_crm:meetings' %}" class="btn btn-info btn-block">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                        </svg>
-                        Log Meeting
                     </a>
                     <a href="{% url 'leaves:create' %}" class="btn btn-warning btn-block">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">

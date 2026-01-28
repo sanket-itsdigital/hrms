@@ -1,6 +1,7 @@
 from .web import (
     list_attendance,
     my_attendance,
+    attendance_calendar_view,
     create_attendance,
     update_attendance,
     delete_attendance,
@@ -12,6 +13,7 @@ from .web import (
 __all__ = [
     "list_attendance",
     "my_attendance",
+    "attendance_calendar_view",
     "create_attendance",
     "update_attendance",
     "delete_attendance",

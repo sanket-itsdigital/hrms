@@ -290,17 +290,7 @@
             
             <!-- Page Content -->
             <main class="flex-1 p-6">
-                <!-- Messages -->
-                {% if messages %}
-                    <div class="mb-4">
-                        {% for message in messages %}
-                            <div class="alert alert-{{ message.tags }} mb-2">
-                                <span>{{ message }}</span>
-                                <button class="btn btn-sm btn-ghost" onclick="this.parentElement.remove()">✕</button>
-                            </div>
-                        {% endfor %}
-                    </div>
-                {% endif %}
+                <!-- Messages removed to disable top notification pills -->
                 
                 <!-- Page Header -->
                 {% block page_header %}{% endblock %}

@@ -11,6 +11,7 @@ import openpyxl
 from leads_crm.models import Lead, Proposal, MeetingLog
 from accounts.models import User
 from projects.models import Project
+from django.shortcuts import render
 
 
 @login_required
@@ -335,3 +336,43 @@ def import_leads(request):
         messages.warning(request, f"Issues on {len(errors)} row(s): {preview}{more}")
 
     return redirect("leads_crm:list")
+
+
+@login_required
+def list_proposals(request):
+    """List proposals (web view)"""
+    user = request.user
+    if not user.organization:
+        messages.error(request, "You are not associated with an organization.")
+        return redirect("accounts:dashboard")
+
+    proposals = (
+        Proposal.objects.filter(lead__organization=user.organization)
+        .select_related("lead", "sent_by")
+        .order_by("-sent_at")
+    )
+
+    context = {
+        "proposals": proposals,
+    }
+    return render(request, "leads_crm/proposals.html", context)
+
+
+@login_required
+def list_meetings(request):
+    """List meeting logs (web view)"""
+    user = request.user
+    if not user.organization:
+        messages.error(request, "You are not associated with an organization.")
+        return redirect("accounts:dashboard")
+
+    meetings = (
+        MeetingLog.objects.filter(lead__organization=user.organization)
+        .select_related("lead", "created_by")
+        .order_by("-date")
+    )
+
+    context = {
+        "meetings": meetings,
+    }
+    return render(request, "leads_crm/meetings.html", context)

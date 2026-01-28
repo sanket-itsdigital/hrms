@@ -281,9 +281,17 @@
                                                     </div>
                                                 {% endif %}
                                             {% else %}
-                                                <div class="badge badge-ghost badge-sm w-full justify-center opacity-50">
-                                                    No Record
+                                                {% if day_data.is_future %}
+                                                <span class="text-xs text-gray-400">—</span>
+                                                {% elif day_data.is_holiday %}
+                                                <div class="badge badge-ghost badge-sm w-full justify-center" {% if day_data.holiday_names %}title="{{ day_data.holiday_names|join:', ' }}"{% endif %}>
+                                                    {% if day_data.holiday_names %}{{ day_data.holiday_names|join:", "|truncatewords:3 }}{% else %}Holiday{% endif %}
                                                 </div>
+                                                {% else %}
+                                                <div class="badge badge-error badge-sm w-full justify-center">
+                                                    Absent
+                                                </div>
+                                                {% endif %}
                                             {% endif %}
                                         </div>
                                     </td>
@@ -299,38 +307,38 @@
         </div>
     </div>
     
-    <!-- Legend -->
-    <div class="card mt-6">
-        <div class="card-body">
-            <h3 class="text-lg font-semibold mb-4">Legend</h3>
-            <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
+    <!-- Legend (same as Attendance Calendar for all users) -->
+    <div class="card mt-6 shadow-sm border border-gray-100">
+        <div class="card-body py-4">
+            <h3 class="text-sm font-semibold text-gray-700 mb-3 uppercase tracking-wide">Legend</h3>
+            <div class="flex flex-wrap gap-x-6 gap-y-3">
                 <div class="flex items-center gap-2">
-                    <div class="badge badge-success badge-sm">Present</div>
+                    <span class="badge badge-success badge-sm">Present</span>
                     <span class="text-sm text-gray-600">Present at office</span>
                 </div>
                 <div class="flex items-center gap-2">
-                    <div class="badge badge-error badge-sm">Absent</div>
-                    <span class="text-sm text-gray-600">Absent</span>
+                    <span class="badge badge-error badge-sm">Absent</span>
+                    <span class="text-sm text-gray-600">Absent / no record (weekday)</span>
                 </div>
                 <div class="flex items-center gap-2">
-                    <div class="badge badge-warning badge-sm">Leave</div>
+                    <span class="badge badge-warning badge-sm">Leave</span>
                     <span class="text-sm text-gray-600">On leave</span>
                 </div>
                 <div class="flex items-center gap-2">
-                    <div class="badge badge-info badge-sm">Late</div>
+                    <span class="badge badge-info badge-sm">Late</span>
                     <span class="text-sm text-gray-600">Late arrival</span>
                 </div>
                 <div class="flex items-center gap-2">
-                    <div class="badge bg-purple-500 text-white badge-sm">Half Day</div>
+                    <span class="badge bg-purple-500 text-white border-0 badge-sm">Half Day</span>
                     <span class="text-sm text-gray-600">Half day</span>
                 </div>
                 <div class="flex items-center gap-2">
-                    <div class="badge bg-teal-500 text-white badge-sm">WFH</div>
+                    <span class="badge bg-teal-500 text-white border-0 badge-sm">WFH</span>
                     <span class="text-sm text-gray-600">Work from home</span>
                 </div>
                 <div class="flex items-center gap-2">
-                    <div class="badge badge-ghost badge-sm">No Record</div>
-                    <span class="text-sm text-gray-600">No attendance record</span>
+                    <span class="badge badge-ghost badge-sm">Holiday</span>
+                    <span class="text-sm text-gray-600">Sunday &amp; company holidays (not counted as absent)</span>
                 </div>
             </div>
         </div>

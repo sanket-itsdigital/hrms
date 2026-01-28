@@ -58,6 +58,18 @@
                     <input type="text" name="search" placeholder="Search updates..." class="input input-bordered w-full" value="{{ search_query }}">
                 </div>
                 
+                {% if user.is_ceo and users %}
+                <div class="form-control">
+                     
+                    <select name="user" class="select select-bordered w-full">
+                        <option value="">All Users</option>
+                        {% for u in users %}
+                        <option value="{{ u.id }}" {% if user_filter|stringformat:"s" == u.id|stringformat:"s" %}selected{% endif %}>{% if u.get_full_name %}{{ u.get_full_name }}{% else %}{{ u.email }}{% endif %}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                {% endif %}
+                
                 <div class="form-control">
                     <select name="project" class="select select-bordered w-full">
                         <option value="">All Projects</option>
@@ -98,7 +110,7 @@
                             <th>Project</th>
                             <th>Description</th>
                             <th>Hours</th>
-                            <th>Figma Link</th>
+                            <th>Link</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
@@ -150,10 +162,8 @@
                             </td>
                             <td>
                                 <div class="flex gap-2">
-                                    {% if can_edit and update.user == user or user.is_ceo or user.is_pm %}
+                                    {% if not user.is_ceo and update.user == user or not user.is_ceo and user.is_pm and update.project.project_manager == user %}
                                     <a href="{% url 'daily_updates:update' update.id %}" class="btn btn-xs btn-outline btn-secondary">Edit</a>
-                                    {% endif %}
-                                    {% if can_edit and update.user == user or user.is_ceo or user.is_pm %}
                                     <a href="{% url 'daily_updates:delete' update.id %}" class="btn btn-xs btn-outline btn-error">Delete</a>
                                     {% endif %}
                                 </div>
@@ -169,13 +179,13 @@
             <div class="flex justify-center mt-6">
                 <div class="join">
                     {% if page_obj.has_previous %}
-                    <a href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if project_filter %}&project={{ project_filter }}{% endif %}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}" class="join-item btn">«</a>
+                    <a href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if user_filter %}&user={{ user_filter }}{% endif %}{% if project_filter %}&project={{ project_filter }}{% endif %}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}" class="join-item btn">«</a>
                     {% endif %}
                     
                     <button class="join-item btn btn-active">{{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</button>
                     
                     {% if page_obj.has_next %}
-                    <a href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if project_filter %}&project={{ project_filter }}{% endif %}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}" class="join-item btn">»</a>
+                    <a href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if user_filter %}&user={{ user_filter }}{% endif %}{% if project_filter %}&project={{ project_filter }}{% endif %}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}" class="join-item btn">»</a>
                     {% endif %}
                 </div>
             </div>

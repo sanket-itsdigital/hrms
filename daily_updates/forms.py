@@ -43,7 +43,7 @@ class DailyUpdateForm(forms.ModelForm):
         # Filter projects based on user role
         if user:
             if user.is_ceo:
-                # CEO can see all projects in their organization
+                # CEO is view-only; no create form (handled in view)
                 projects = Project.objects.filter(organization=user.organization)
             elif user.is_pm:
                 # PM can see projects they manage
@@ -58,6 +58,9 @@ class DailyUpdateForm(forms.ModelForm):
                     assignments__user=user,
                     assignments__is_active=True
                 ).distinct()
+            elif user.is_hr or user.is_bde:
+                # HR/BDE can add daily task; can select any org project
+                projects = Project.objects.filter(organization=user.organization)
             else:
                 projects = Project.objects.none()
             

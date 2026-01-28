@@ -1,0 +1,226 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Attendance Calendar - Its Digital{% endblock %}
+
+{% block page_header %}
+<div class="mb-6">
+    <h1 class="text-3xl font-bold text-gray-900 flex items-center gap-3 mb-2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+        </svg>
+        Attendance Calendar
+    </h1>
+    <div class="breadcrumbs text-sm">
+        <ul>
+            <li><a href="{% url 'accounts:dashboard' %}" class="text-gray-500 hover:text-gray-700">Dashboard</a></li>
+            <li><a href="{% url 'attendance:list' %}" class="text-gray-500 hover:text-gray-700">Attendance</a></li>
+            <li class="text-gray-400">Calendar</li>
+        </ul>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto space-y-6">
+    <!-- Toolbar: User + Month navigation -->
+    <div class="card shadow-lg border border-gray-100">
+        <div class="card-body py-4">
+            <form method="get" class="flex flex-wrap items-center gap-4">
+                <input type="hidden" name="year" value="{{ year }}">
+                <input type="hidden" name="month" value="{{ month }}">
+                <div class="form-control min-w-[220px]">
+                    <label class="label py-0">
+                        <span class="label-text font-medium text-gray-700">Employee</span>
+                    </label>
+                    <select name="user" class="select select-bordered select-sm w-full bg-white" onchange="this.form.submit()">
+                        <option value="">— Select employee —</option>
+                        {% for u in users %}
+                        <option value="{{ u.id }}" {% if user_filter == u.id %}selected{% endif %}>
+                            {% if u.get_full_name %}{{ u.get_full_name }}{% else %}{{ u.email }}{% endif %}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                {% if selected_user %}
+                <div class="flex items-center gap-2 flex-wrap">
+                    <a href="?year={{ prev_year }}&month={{ prev_month }}{{ base_query }}" class="btn btn-sm btn-ghost btn-square" title="Previous month">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                        </svg>
+                    </a>
+                    <span class="text-lg font-semibold text-gray-800 min-w-[160px] text-center">{{ month_name }} {{ year }}</span>
+                    <a href="?year={{ next_year }}&month={{ next_month }}{{ base_query }}" class="btn btn-sm btn-ghost btn-square" title="Next month">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                        </svg>
+                    </a>
+                </div>
+                <button type="submit" class="btn btn-sm btn-primary">Apply</button>
+                {% endif %}
+            </form>
+            {% if selected_user %}
+            <p class="text-sm text-gray-500 mt-2">
+                Viewing: <strong class="text-gray-700">{{ selected_user.get_full_name|default:selected_user.email }}</strong>
+                <span class="text-gray-400">·</span> {{ selected_user.email }}
+            </p>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if selected_user %}
+    <!-- Statistics (same UI as My Attendance - do not change) -->
+    <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4 mb-6">
+        <div class="stat stat-card gradient-primary text-white rounded-xl">
+            <div class="stat-title text-white/90 font-semibold text-xs">Total Days</div>
+            <div class="stat-value text-2xl font-bold text-white">{{ total_days }}</div>
+        </div>
+        <div class="stat stat-card gradient-success text-white rounded-xl">
+            <div class="stat-title text-white/90 font-semibold text-xs">Present</div>
+            <div class="stat-value text-2xl font-bold text-white">{{ present_days }}</div>
+        </div>
+        <div class="stat stat-card gradient-error text-white rounded-xl">
+            <div class="stat-title text-white/90 font-semibold text-xs">Absent</div>
+            <div class="stat-value text-2xl font-bold text-white">{{ absent_days }}</div>
+        </div>
+        <div class="stat stat-card gradient-warning text-white rounded-xl">
+            <div class="stat-title text-white/90 font-semibold text-xs">On Leave</div>
+            <div class="stat-value text-2xl font-bold text-white">{{ leave_days }}</div>
+        </div>
+        <div class="stat stat-card gradient-info text-white rounded-xl">
+            <div class="stat-title text-white/90 font-semibold text-xs">Late</div>
+            <div class="stat-value text-2xl font-bold text-white">{{ late_days }}</div>
+        </div>
+        <div class="stat stat-card bg-gradient-to-br from-purple-500 to-pink-600 text-white rounded-xl">
+            <div class="stat-title text-white/90 font-semibold text-xs">Half Day</div>
+            <div class="stat-value text-2xl font-bold text-white">{{ half_days }}</div>
+        </div>
+        <div class="stat stat-card bg-gradient-to-br from-teal-500 to-cyan-600 text-white rounded-xl">
+            <div class="stat-title text-white/90 font-semibold text-xs">WFH</div>
+            <div class="stat-value text-2xl font-bold text-white">{{ wfh_days }}</div>
+        </div>
+    </div>
+
+    <!-- Calendar (holidays e.g. 31st show in the grid from Company → Holidays) -->
+    <div class="card shadow-lg border border-gray-100 overflow-hidden">
+        <div class="card-body p-0">
+            <div class="overflow-x-auto">
+                <table class="table w-full mb-0 border-collapse">
+                    <thead>
+                        <tr class="bg-gray-50 border-b border-gray-200">
+                            <th class="text-center font-semibold text-gray-600 py-3 w-[14.28%]">Sun</th>
+                            <th class="text-center font-semibold text-gray-600 py-3 w-[14.28%]">Mon</th>
+                            <th class="text-center font-semibold text-gray-600 py-3 w-[14.28%]">Tue</th>
+                            <th class="text-center font-semibold text-gray-600 py-3 w-[14.28%]">Wed</th>
+                            <th class="text-center font-semibold text-gray-600 py-3 w-[14.28%]">Thu</th>
+                            <th class="text-center font-semibold text-gray-600 py-3 w-[14.28%]">Fri</th>
+                            <th class="text-center font-semibold text-gray-600 py-3 w-[14.28%]">Sat</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for week in calendar_data %}
+                        <tr class="border-b border-gray-100 last:border-0">
+                            {% for day_data in week %}
+                                {% if day_data %}
+                                    <td class="align-top p-2 sm:p-3 border-r border-gray-100 last:border-r-0 min-h-[90px] {% if today and day_data.date == today %}bg-purple-50/80 ring-2 ring-inset ring-purple-400{% endif %}">
+                                        <div class="flex flex-col items-center min-h-[72px]">
+                                            <span class="text-sm font-semibold text-gray-700 mb-1.5 {% if today and day_data.date == today %}text-purple-700{% endif %}">{{ day_data.day }}</span>
+                                            {% if day_data.attendance %}
+                                                {% if day_data.attendance.status == 'PRESENT' %}
+                                                    <div class="badge badge-success badge-sm w-full justify-center shadow-sm">Present</div>
+                                                {% elif day_data.attendance.status == 'ABSENT' %}
+                                                    <div class="badge badge-error badge-sm w-full justify-center shadow-sm">Absent</div>
+                                                {% elif day_data.attendance.status == 'LEAVE' %}
+                                                    <div class="badge badge-warning badge-sm w-full justify-center shadow-sm">Leave</div>
+                                                {% elif day_data.attendance.status == 'LATE' %}
+                                                    <div class="badge badge-info badge-sm w-full justify-center shadow-sm">Late</div>
+                                                {% elif day_data.attendance.status == 'HALF_DAY' %}
+                                                    <div class="badge bg-purple-500 text-white border-0 badge-sm w-full justify-center shadow-sm">Half Day</div>
+                                                {% elif day_data.attendance.status == 'WORK_FROM_HOME' %}
+                                                    <div class="badge bg-teal-500 text-white border-0 badge-sm w-full justify-center shadow-sm">WFH</div>
+                                                {% endif %}
+                                                {% if day_data.attendance.check_in %}
+                                                    <div class="text-[10px] text-gray-500 mt-1.5 leading-tight">
+                                                        {{ day_data.attendance.check_in|time:"H:i" }}{% if day_data.attendance.check_out %} – {{ day_data.attendance.check_out|time:"H:i" }}{% endif %}
+                                                    </div>
+                                                {% endif %}
+                                            {% else %}
+                                                {% if day_data.is_future %}
+                                                    <span class="text-gray-300 text-xs">—</span>
+                                                {% elif day_data.is_holiday %}
+                                                    <div class="badge badge-ghost badge-sm w-full justify-center text-gray-600" {% if day_data.holiday_names %}title="{{ day_data.holiday_names|join:', ' }}"{% endif %}>
+                                                        {% if day_data.holiday_names %}{{ day_data.holiday_names|join:", " }}{% else %}{% if day_data.is_sunday %}Sunday{% else %}Holiday{% endif %}{% endif %}
+                                                    </div>
+                                                {% else %}
+                                                    <div class="badge badge-error badge-sm w-full justify-center shadow-sm opacity-90">Absent</div>
+                                                {% endif %}
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                {% else %}
+                                    <td class="p-2 bg-gray-50/50 border-r border-gray-100 last:border-r-0"></td>
+                                {% endif %}
+                            {% endfor %}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Legend -->
+    <div class="card shadow-sm border border-gray-100">
+        <div class="card-body py-4">
+            <h3 class="text-sm font-semibold text-gray-700 mb-3 uppercase tracking-wide">Legend</h3>
+            <div class="flex flex-wrap gap-x-6 gap-y-3">
+                <div class="flex items-center gap-2">
+                    <span class="badge badge-success badge-sm">Present</span>
+                    <span class="text-sm text-gray-600">Present at office</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="badge badge-error badge-sm">Absent</span>
+                    <span class="text-sm text-gray-600">Absent / no record (weekday)</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="badge badge-warning badge-sm">Leave</span>
+                    <span class="text-sm text-gray-600">On leave</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="badge badge-info badge-sm">Late</span>
+                    <span class="text-sm text-gray-600">Late arrival</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="badge bg-purple-500 text-white border-0 badge-sm">Half Day</span>
+                    <span class="text-sm text-gray-600">Half day</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="badge bg-teal-500 text-white border-0 badge-sm">WFH</span>
+                    <span class="text-sm text-gray-600">Work from home</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="badge badge-ghost badge-sm">Holiday</span>
+                    <span class="text-sm text-gray-600">Sunday & company holidays (not counted as absent)</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="flex justify-end">
+        <a href="{% url 'attendance:list' %}" class="btn btn-ghost btn-sm">View attendance list →</a>
+    </div>
+    {% else %}
+    <!-- Empty state -->
+    <div class="card shadow-lg border border-gray-100">
+        <div class="card-body py-16 text-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto text-gray-300 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+            <h3 class="text-lg font-semibold text-gray-700 mb-2">Select an employee</h3>
+            <p class="text-gray-500 mb-6 max-w-sm mx-auto">Choose an employee from the dropdown above to view their attendance calendar for the month.</p>
+            <a href="{% url 'attendance:list' %}" class="btn btn-primary">View attendance list</a>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

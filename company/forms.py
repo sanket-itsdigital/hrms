@@ -1,5 +1,5 @@
 from django import forms
-from company.models import Announcement, Policy, Holiday, Event, BirthdayAnniversary
+from company.models import Announcement, Policy, Holiday, RecurringHolidayRule, Event, BirthdayAnniversary
 from accounts.models import User
 from django.utils import timezone
 
@@ -153,6 +153,27 @@ class HolidayForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.fields['name'].required = True
         self.fields['date'].required = True
+
+
+class RecurringHolidayRuleForm(forms.ModelForm):
+    """Form for adding recurring rules e.g. 2nd Saturday, 4th Saturday."""
+
+    class Meta:
+        model = RecurringHolidayRule
+        fields = ['name', 'weekday', 'week_of_month']
+        widgets = {
+            'name': forms.TextInput(attrs={
+                'class': 'input input-bordered w-full',
+                'placeholder': 'e.g. 2nd Saturday Off',
+            }),
+            'weekday': forms.Select(attrs={'class': 'select select-bordered w-full'}),
+            'week_of_month': forms.Select(attrs={'class': 'select select-bordered w-full'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['name'].required = True
+        self.fields['week_of_month'].choices = [(i, f'{i}{"st" if i == 1 else "nd" if i == 2 else "rd" if i == 3 else "th"} of month') for i in range(1, 6)]
 
 
 class EventForm(forms.ModelForm):

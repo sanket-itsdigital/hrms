@@ -1,0 +1,114 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}My Payroll - Its Digital{% endblock %}
+
+{% block page_header %}
+<div class="mb-6">
+    <div class="flex justify-between items-center mb-4">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-900 flex items-center gap-3 mb-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                My Payroll
+            </h1>
+            <div class="breadcrumbs text-sm">
+                <ul>
+                    <li><a href="{% url 'accounts:dashboard' %}" class="text-gray-500 hover:text-gray-700">Dashboard</a></li>
+                    <li class="text-gray-400">My Payroll</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <p class="text-sm text-gray-600 mb-4">
+        Net = Base + Bonuses − Deductions − Attendance Deduction. Attendance deduction is based on working days present (Sundays excluded).
+    </p>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    {% if payrolls %}
+    <div class="card">
+        <div class="card-body p-0">
+            <div class="overflow-x-auto">
+                <table class="table table-zebra w-full">
+                    <thead>
+                        <tr>
+                            <th>Period</th>
+                            <th>Base Salary</th>
+                            <th>Bonuses</th>
+                            <th>Deductions</th>
+                            <th>Attend. Ded.</th>
+                            <th>Net Salary</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for payroll in payrolls %}
+                        <tr>
+                            <td>
+                                <div class="font-semibold">{{ payroll.get_month_display }} {{ payroll.year }}</div>
+                            </td>
+                            <td><span class="font-semibold">₹{{ payroll.base_salary|floatformat:0 }}</span></td>
+                            <td><span class="text-green-600 font-semibold">+₹{{ payroll.bonuses|floatformat:0 }}</span></td>
+                            <td><span class="text-red-600 font-semibold">-₹{{ payroll.deductions|floatformat:0 }}</span></td>
+                            <td>
+                                <span class="text-orange-600 font-semibold" title="Based on days present">-₹{{ payroll.attendance_deduction|floatformat:0 }}</span>
+                            </td>
+                            <td><span class="font-bold text-lg">₹{{ payroll.net_salary|floatformat:0 }}</span></td>
+                            <td>
+                                {% if payroll.status == 'DRAFT' %}
+                                    <span class="badge badge-neutral">{{ payroll.get_status_display }}</span>
+                                {% elif payroll.status == 'PROCESSED' %}
+                                    <span class="badge badge-info">{{ payroll.get_status_display }}</span>
+                                {% elif payroll.status == 'PAID' %}
+                                    <span class="badge badge-success">{{ payroll.get_status_display }}</span>
+                                {% elif payroll.status == 'CANCELLED' %}
+                                    <span class="badge badge-error">{{ payroll.get_status_display }}</span>
+                                {% else %}
+                                    <span class="badge badge-ghost">{{ payroll.get_status_display }}</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{% url 'payroll:detail' payroll.id %}" class="btn btn-sm btn-outline btn-primary" title="View details">
+                                    View
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    {% if payrolls.has_other_pages %}
+    <div class="flex justify-center mt-6">
+        <div class="join">
+            {% if payrolls.has_previous %}
+                <a href="?page={{ payrolls.previous_page_number }}" class="join-item btn">«</a>
+            {% endif %}
+            <span class="join-item btn btn-active">{{ payrolls.number }} of {{ payrolls.paginator.num_pages }}</span>
+            {% if payrolls.has_next %}
+                <a href="?page={{ payrolls.next_page_number }}" class="join-item btn">»</a>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+
+    {% else %}
+    <div class="card">
+        <div class="card-body text-center py-12">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-24 w-24 mx-auto mb-6 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <h3 class="text-2xl font-bold mb-4 text-gray-700">No Payroll Records</h3>
+            <p class="text-gray-500">You don't have any payroll records yet. Payroll is generated by HR for your organization.</p>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

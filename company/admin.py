@@ -1,5 +1,5 @@
 from django.contrib import admin
-from company.models import Announcement, Policy, Holiday, Event, BirthdayAnniversary
+from company.models import Announcement, Policy, Holiday, RecurringHolidayRule, Event, BirthdayAnniversary
 
 
 @admin.register(Announcement)
@@ -24,6 +24,13 @@ class HolidayAdmin(admin.ModelAdmin):
     list_filter = ['holiday_type', 'is_recurring', 'date', 'organization']
     search_fields = ['name', 'description']
     readonly_fields = ['created_at', 'updated_at']
+
+
+@admin.register(RecurringHolidayRule)
+class RecurringHolidayRuleAdmin(admin.ModelAdmin):
+    list_display = ['name', 'weekday', 'week_of_month', 'organization']
+    list_filter = ['weekday', 'organization']
+    search_fields = ['name']
 
 
 @admin.register(Event)

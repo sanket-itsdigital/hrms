@@ -22,7 +22,7 @@ class UserForm(forms.ModelForm):
         model = User
         fields = ['username', 'email', 'first_name', 'last_name', 'phone', 'profile_picture', 
                   'role', 'employee_id', 'designation', 'department', 'date_of_joining', 
-                  'birth_date', 'is_active', 'is_staff', 'is_verified']
+                  'birth_date', 'salary', 'is_active', 'is_staff', 'is_verified']
         widgets = {
             'username': forms.TextInput(attrs={
                 'class': 'input input-bordered w-full'
@@ -61,6 +61,12 @@ class UserForm(forms.ModelForm):
             'birth_date': forms.DateInput(attrs={
                 'class': 'input input-bordered w-full',
                 'type': 'date'
+            }),
+            'salary': forms.NumberInput(attrs={
+                'class': 'input input-bordered w-full',
+                'step': '0.01',
+                'min': '0',
+                'placeholder': 'Monthly salary (for payroll)'
             }),
             'is_active': forms.CheckboxInput(attrs={
                 'class': 'checkbox checkbox-primary'

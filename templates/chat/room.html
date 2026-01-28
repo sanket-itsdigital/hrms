@@ -27,6 +27,9 @@
             </svg>
             Back to Chats
         </a>
+        {% if user.is_superuser or user.is_ceo %}
+        <button id="open-add-user" class="btn btn-outline ml-2">Add User</button>
+        {% endif %}
     </div>
 </div>
 {% endblock %}
@@ -90,6 +93,31 @@
             </div>
         </div>
     </div>
+
+        <!-- Add User Modal (admin only) -->
+        {% if user.is_superuser or user.is_ceo %}
+        <div id="add-user-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center">
+            <div class="bg-white rounded-lg p-6 w-96">
+                <h3 class="text-lg font-semibold mb-3">Add user to {{ display_name }}</h3>
+                <form id="add-user-form" method="post" action="{% url 'chat:add_user' room.id %}">
+                    {% csrf_token %}
+                    <div class="mb-4">
+                        <label class="block text-sm mb-1">Select User</label>
+                        <select id="add-user-select" name="user_id" class="select select-bordered w-full">
+                            <option value="">-- Select user --</option>
+                            {% for u in available_users %}
+                                <option value="{{ u.id }}">{{ u.get_full_name|default:u.username }} ({{ u.username }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="flex justify-end gap-2">
+                        <button type="button" id="cancel-add-user" class="btn btn-ghost">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Add</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        {% endif %}
 </div>
 
 <script>
@@ -195,12 +223,68 @@ document.addEventListener('DOMContentLoaded', function() {
             alert('Error sending message. Please try again.');
         });
     });
+
+    // Send on Enter (press Enter to send, Shift+Enter for newline)
+    messageInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            // Trigger the submit handler which already handles AJAX send
+            messageForm.dispatchEvent(new Event('submit', {bubbles: true, cancelable: true}));
+        }
+    });
     
     // Load new messages every 3 seconds
     setInterval(loadNewMessages, 3000);
     
     // Initial scroll to bottom
     scrollToBottom();
+    // Add user modal behavior (admin)
+    const addUserModal = document.getElementById('add-user-modal');
+    const openAddUser = document.getElementById('open-add-user');
+    const cancelAddUser = document.getElementById('cancel-add-user');
+    const addUserForm = document.getElementById('add-user-form');
+
+    if (openAddUser && addUserModal) {
+        openAddUser.addEventListener('click', function() {
+            addUserModal.classList.remove('hidden');
+            addUserModal.classList.add('flex');
+        });
+    }
+
+    if (cancelAddUser && addUserModal) {
+        cancelAddUser.addEventListener('click', function() {
+            addUserModal.classList.add('hidden');
+            addUserModal.classList.remove('flex');
+        });
+    }
+
+    if (addUserForm) {
+        addUserForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(addUserForm);
+            fetch(addUserForm.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRFToken': formData.get('csrfmiddlewaretoken')
+                }
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    alert('User ' + data.user.name + ' added to the room.');
+                    addUserModal.classList.add('hidden');
+                    addUserModal.classList.remove('flex');
+                } else {
+                    alert('Error: ' + (data.error || 'Unable to add user'));
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert('Error adding user.');
+            });
+        });
+    }
 });
 </script>
 {% endblock %}

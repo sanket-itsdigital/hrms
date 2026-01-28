@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ title }} - Its Digital{% endblock %}
+
+{% block page_header %}
+<div class="mb-6">
+    <h1 class="text-3xl font-bold text-gray-900 flex items-center gap-3 mb-2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+        </svg>
+        {{ title }}
+    </h1>
+    <div class="breadcrumbs text-sm">
+        <ul>
+            <li><a href="{% url 'accounts:dashboard' %}" class="text-gray-500 hover:text-gray-700">Dashboard</a></li>
+            <li><a href="{% url 'company:index' %}" class="text-gray-500 hover:text-gray-700">Company</a></li>
+            <li><a href="{% url 'company:holidays_list' %}" class="text-gray-500 hover:text-gray-700">Holidays</a></li>
+            <li class="text-gray-400">Add recurring</li>
+        </ul>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <div class="card shadow-xl">
+        <div class="card-body">
+            <p class="text-sm text-gray-600 mb-4">These days will appear as holiday for <strong>all users</strong> in their attendance calendar and will not be counted as absent in payroll. Example: set 2nd Saturday and 4th Saturday so every month those Saturdays are off.</p>
+            <form method="post" class="space-y-6">
+                {% csrf_token %}
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text font-medium">Name <span class="text-error">*</span></span>
+                    </label>
+                    {{ form.name }}
+                    {% if form.name.errors %}
+                        <label class="label"><span class="label-text-alt text-error">{{ form.name.errors }}</span></label>
+                    {% endif %}
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text font-medium">Day of week</span>
+                        </label>
+                        {{ form.weekday }}
+                        {% if form.weekday.errors %}
+                            <label class="label"><span class="label-text-alt text-error">{{ form.weekday.errors }}</span></label>
+                        {% endif %}
+                    </div>
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text font-medium">Which occurrence in month</span>
+                        </label>
+                        {{ form.week_of_month }}
+                        {% if form.week_of_month.errors %}
+                            <label class="label"><span class="label-text-alt text-error">{{ form.week_of_month.errors }}</span></label>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="divider"></div>
+                <div class="flex justify-end gap-4">
+                    <a href="{% url 'company:holidays_list' %}" class="btn btn-ghost">Cancel</a>
+                    <button type="submit" class="btn btn-primary">Add recurring holiday</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -8,6 +8,7 @@ from company.views import (
     policies_list, policy_create, policy_update, policy_delete,
     # Holidays
     holidays_list, holiday_create, holiday_update, holiday_delete,
+    recurring_holiday_create, recurring_holiday_delete,
     # Events
     events_list, event_detail, event_create, event_update, event_delete,
     event_join, event_leave,
@@ -36,6 +37,8 @@ urlpatterns = [
     # Holidays
     path('holidays/', holidays_list, name='holidays_list'),
     path('holidays/create/', holiday_create, name='holiday_create'),
+    path('holidays/recurring/add/', recurring_holiday_create, name='recurring_holiday_create'),
+    path('holidays/recurring/<int:id>/delete/', recurring_holiday_delete, name='recurring_holiday_delete'),
     path('holidays/<int:id>/edit/', holiday_update, name='holiday_update'),
     path('holidays/<int:id>/delete/', holiday_delete, name='holiday_delete'),
     

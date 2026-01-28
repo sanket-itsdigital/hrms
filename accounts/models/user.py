@@ -30,6 +30,13 @@ class User(AbstractUser):
     department = models.CharField(max_length=100, blank=True, null=True)
     date_of_joining = models.DateField(blank=True, null=True, help_text="Date when employee joined the company")
     birth_date = models.DateField(blank=True, null=True, help_text="Employee's date of birth")
+    salary = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        blank=True,
+        null=True,
+        help_text="Monthly salary (used for payroll generation)",
+    )
     is_active = models.BooleanField(default=True)
     is_verified = models.BooleanField(default=False)
     last_login_ip = models.GenericIPAddressField(blank=True, null=True)

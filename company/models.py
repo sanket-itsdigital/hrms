@@ -121,6 +121,7 @@ class Holiday(models.Model):
         ('NATIONAL', 'National Holiday'),
         ('REGIONAL', 'Regional Holiday'),
         ('COMPANY', 'Company Holiday'),
+        ('SATURDAY_OFF', 'Saturday Off'),
         ('FESTIVAL', 'Festival'),
         ('OTHER', 'Other'),
     ]
@@ -160,6 +161,95 @@ class Holiday(models.Model):
     def is_upcoming(self):
         """Check if holiday is in the future"""
         return self.date >= timezone.now().date()
+
+    @staticmethod
+    def get_non_working_dates_for_month(organization, year, month):
+        """
+        Return a set of dates in the given month that are non-working:
+        Sundays + all holidays (national, Saturday off, etc.) for the organization.
+        Used for payroll and attendance so salary is not cut for these days.
+        """
+        import calendar as cal
+        from datetime import date
+        total_days = cal.monthrange(year, month)[1]
+        non_working = set()
+        for day in range(1, total_days + 1):
+            d = date(year, month, day)
+            if d.weekday() == 6:  # Sunday
+                non_working.add(d)
+        holiday_dates = set(
+            Holiday.objects.filter(
+                organization=organization,
+                date__year=year,
+                date__month=month,
+            ).values_list('date', flat=True)
+        )
+        non_working.update(holiday_dates)
+        return non_working
+
+    @staticmethod
+    def get_holidays_by_date_for_month(organization, year, month):
+        """Return dict of date -> list of holiday names for calendar display."""
+        from collections import defaultdict
+        by_date = defaultdict(list)
+        qs = Holiday.objects.filter(
+            organization=organization,
+            date__year=year,
+            date__month=month,
+        ).order_by('date')
+        for h in qs:
+            by_date[h.date].append(h.name)
+        return dict(by_date)
+
+
+class RecurringHolidayRule(models.Model):
+    """
+    Recurring holiday by weekday occurrence, e.g. "2nd Saturday" or "4th Saturday" of every month.
+    All users see these days as holiday in their calendar and payroll does not deduct for them.
+    """
+    WEEKDAY_CHOICES = [
+        (0, 'Monday'),
+        (1, 'Tuesday'),
+        (2, 'Wednesday'),
+        (3, 'Thursday'),
+        (4, 'Friday'),
+        (5, 'Saturday'),
+        (6, 'Sunday'),
+    ]
+    organization = models.ForeignKey(
+        Organization,
+        on_delete=models.CASCADE,
+        related_name='recurring_holiday_rules',
+    )
+    name = models.CharField(max_length=255, help_text='e.g. 2nd Saturday Off')
+    weekday = models.PositiveSmallIntegerField(choices=WEEKDAY_CHOICES)  # 0=Mon, 5=Sat, 6=Sun
+    week_of_month = models.PositiveSmallIntegerField(
+        help_text='1=1st occurrence in month, 2=2nd, 3=3rd, 4=4th, 5=5th',
+    )  # 1-5
+
+    class Meta:
+        db_table = 'recurring_holiday_rules'
+        verbose_name = 'Recurring Holiday Rule'
+        verbose_name_plural = 'Recurring Holiday Rules'
+        unique_together = ['organization', 'weekday', 'week_of_month']
+        ordering = ['weekday', 'week_of_month']
+
+    def __str__(self):
+        return f"{self.name} (org {self.organization_id})"
+
+    def get_date_for_month(self, year, month):
+        """Return the date for this rule in the given year/month, or None if not possible (e.g. 5th Saturday when month has only 4)."""
+        import calendar as cal
+        from datetime import date
+        total_days = cal.monthrange(year, month)[1]
+        count = 0
+        for day in range(1, total_days + 1):
+            d = date(year, month, day)
+            if d.weekday() == self.weekday:
+                count += 1
+                if count == self.week_of_month:
+                    return d
+        return None
 
 
 class Event(models.Model):

@@ -12,32 +12,23 @@ from django.utils import timezone
 class ProjectForm(forms.ModelForm):
     """Form for creating and updating projects"""
     
-    # Team member assignment fields (only for CEO)
+    # Team member assignment fields (only for CEO) - rendered as dropdown with checkboxes in template
     developers = forms.ModelMultipleChoiceField(
         queryset=User.objects.none(),
         required=False,
-        widget=forms.SelectMultiple(attrs={
-            'class': 'select select-bordered w-full',
-            'size': '5'
-        }),
+        widget=forms.CheckboxSelectMultiple(),
         help_text="Select developers to assign to this project"
     )
     uiux_designers = forms.ModelMultipleChoiceField(
         queryset=User.objects.none(),
         required=False,
-        widget=forms.SelectMultiple(attrs={
-            'class': 'select select-bordered w-full',
-            'size': '5'
-        }),
+        widget=forms.CheckboxSelectMultiple(),
         help_text="Select UI/UX designers to assign to this project"
     )
     bde_users = forms.ModelMultipleChoiceField(
         queryset=User.objects.none(),
         required=False,
-        widget=forms.SelectMultiple(attrs={
-            'class': 'select select-bordered w-full',
-            'size': '5'
-        }),
+        widget=forms.CheckboxSelectMultiple(),
         help_text="Select BDE users to assign to this project"
     )
     

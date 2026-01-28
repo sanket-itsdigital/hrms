@@ -3,13 +3,14 @@
 <div class="drawer-side">
     <label for="drawer-toggle" class="drawer-overlay"></label>
     <aside class="w-64 min-h-full bg-base-100 border-r border-base-300 shadow-lg">
-        <!-- Sidebar Header: logo -->
-        <div class="flex items-center justify-between p-4 border-b border-gray-200">
-            <div class="flex items-center gap-3">
-                <img src="{% static 'images/logo.png' %}" alt="Its Digital" class="h-8 w-auto" />
-                <h2 class="text-xl font-bold text-gray-900 hidden lg:block">Its Digital</h2>
+        <!-- Sidebar Header: logo (centered, links to dashboard) -->
+        <div class="relative flex items-center justify-between p-4 border-b border-gray-200">
+            <div class="flex-1 flex justify-center">
+                <a href="{% url 'accounts:dashboard' %}" class="block" aria-label="Go to dashboard">
+                    <img src="{% static 'images/logo.png' %}" alt="Its Digital" class="h-14 w-auto sm:h-16" />
+                </a>
             </div>
-            <label for="drawer-toggle" class="btn btn-sm btn-circle btn-ghost lg:hidden">
+            <label for="drawer-toggle" class="btn btn-sm btn-circle btn-ghost lg:hidden absolute right-4">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                 </svg>

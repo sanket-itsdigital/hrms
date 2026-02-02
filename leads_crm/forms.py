@@ -61,21 +61,13 @@ class LeadForm(forms.ModelForm):
         organization = kwargs.pop("organization", None)
         super().__init__(*args, **kwargs)
 
-        # Filter users based on organization and role
+        # Assign leads only to CEO, Manager (PM), or BDE
         if user and organization:
-            if user.is_ceo:
-                queryset = User.objects.filter(
-                    organization=organization, is_active=True
-                )
-            elif user.is_bde:
-                queryset = User.objects.filter(
-                    organization=organization,
-                    is_active=True,
-                    role__name__in=["BDE", "CEO"],
-                )
-            else:
-                queryset = User.objects.filter(id=user.id)
-
+            queryset = User.objects.filter(
+                organization=organization,
+                is_active=True,
+                role__name__in=["CEO", "PM", "BDE"],
+            )
             self.fields["assigned_users"].queryset = queryset.order_by(
                 "first_name", "last_name"
             )

@@ -27,8 +27,10 @@
             </svg>
             Back to Chats
         </a>
+        {% if room.room_type == 'PROJECT' %}
         {% if user.is_superuser or user.is_ceo %}
         <button id="open-add-user" class="btn btn-outline ml-2">Add User</button>
+        {% endif %}
         {% endif %}
     </div>
 </div>
@@ -36,6 +38,32 @@
 
 {% block content %}
 <div class="max-w-4xl mx-auto">
+    {% if room.room_type == 'PROJECT' %}
+    <!-- Project chat: show members and count -->
+    <div class="card shadow-sm border border-gray-100 mb-4">
+        <div class="card-body py-3">
+            <h3 class="text-sm font-semibold text-gray-700 mb-2">
+                Group members <span class="badge badge-ghost badge-sm">{{ room.participants.count }}</span>
+            </h3>
+            <div class="flex flex-wrap gap-2 items-center">
+                {% for p in room.participants.all %}
+                <div class="flex items-center gap-2 bg-gray-50 rounded-lg px-3 py-1.5 border border-gray-100">
+                    <span class="text-sm font-medium text-gray-900">{{ p.get_full_name|default:p.username }}</span>
+                    {% if user.is_ceo or user.is_superuser %}
+                    {% if p.id != user.id %}
+                    <form class="remove-member-form inline" method="post" action="{% url 'chat:remove_user' room.id %}" data-user-id="{{ p.id }}" data-user-name="{{ p.get_full_name|default:p.username }}">
+                        {% csrf_token %}
+                        <input type="hidden" name="user_id" value="{{ p.id }}">
+                        <button type="submit" class="btn btn-ghost btn-xs text-error hover:bg-error/10" title="Remove from chat">Remove</button>
+                    </form>
+                    {% endif %}
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
     <div class="card shadow-xl">
         <div class="card-body p-0">
             <!-- Chat Messages Area -->
@@ -94,8 +122,10 @@
         </div>
     </div>
 
-        <!-- Add User Modal (admin only) -->
+        <!-- Add User Modal (project chats only, CEO only) -->
+        {% if room.room_type == 'PROJECT' %}
         {% if user.is_superuser or user.is_ceo %}
+        {% if available_users %}
         <div id="add-user-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center">
             <div class="bg-white rounded-lg p-6 w-96">
                 <h3 class="text-lg font-semibold mb-3">Add user to {{ display_name }}</h3>
@@ -117,6 +147,8 @@
                 </form>
             </div>
         </div>
+        {% endif %}
+        {% endif %}
         {% endif %}
 </div>
 

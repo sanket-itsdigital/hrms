@@ -111,7 +111,8 @@
                     Attendance
                 </a>
             </li>
-            <!-- My Attendance (punch in/out - CEO/HR also punch like others) -->
+            {% if user.is_hr %}
+            <!-- My Attendance (punch in/out - HR punches like other users; CEO does not) -->
             <li>
                 <a href="{% url 'attendance:my-attendance' %}" class="{% if 'my-attendance' in request.path %}active{% endif %}">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -120,6 +121,7 @@
                     My Attendance
                 </a>
             </li>
+            {% endif %}
             {% else %}
             <!-- My Attendance -->
             <li>

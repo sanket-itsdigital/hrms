@@ -708,7 +708,7 @@ def create_api_page(request, project_id):
         return redirect('projects:api_documentation', project_id=project_id)
     
     if request.method == 'POST':
-        form = APIDocumentationPageForm(request.POST)
+        form = APIDocumentationPageForm(request.POST, request.FILES)
         if form.is_valid():
             page = form.save(commit=False)
             page.project = project
@@ -716,12 +716,14 @@ def create_api_page(request, project_id):
             page.save()
             messages.success(request, f'API documentation page "{page.page_name}" created successfully!')
             return redirect('projects:api_documentation', project_id=project_id)
+        messages.error(request, 'Please fix the errors below and try again.')
     else:
         form = APIDocumentationPageForm()
     
     context = {
         'form': form,
         'project': project,
+        'page': None,
         'title': 'Create API Documentation Page',
         'action': 'Create'
     }
@@ -742,11 +744,12 @@ def update_api_page(request, project_id, page_id):
         return redirect('projects:api_documentation', project_id=project_id)
     
     if request.method == 'POST':
-        form = APIDocumentationPageForm(request.POST, instance=page)
+        form = APIDocumentationPageForm(request.POST, request.FILES, instance=page)
         if form.is_valid():
             form.save()
             messages.success(request, f'API documentation page "{page.page_name}" updated successfully!')
             return redirect('projects:api_documentation', project_id=project_id)
+        messages.error(request, 'Please fix the errors below and try again.')
     else:
         form = APIDocumentationPageForm(instance=page)
     

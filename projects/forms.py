@@ -349,10 +349,10 @@ class PaymentForm(forms.ModelForm):
 
 class APIDocumentationPageForm(forms.ModelForm):
     """Form for creating and updating API documentation pages"""
-    
+
     class Meta:
         model = APIDocumentationPage
-        fields = ['page_name', 'figma_link', 'description', 'order']
+        fields = ['page_name', 'figma_link', 'description', 'image', 'order']
         widgets = {
             'page_name': forms.TextInput(attrs={
                 'class': 'input input-bordered w-full',
@@ -367,6 +367,10 @@ class APIDocumentationPageForm(forms.ModelForm):
                 'rows': 3,
                 'placeholder': 'Description of the page and its functionality'
             }),
+            'image': forms.FileInput(attrs={
+                'class': 'file-input file-input-bordered w-full',
+                'accept': 'image/*',
+            }),
             'order': forms.NumberInput(attrs={
                 'class': 'input input-bordered w-full',
                 'min': 0,
@@ -378,11 +382,73 @@ class APIDocumentationPageForm(forms.ModelForm):
         project = kwargs.pop('project', None)
         super().__init__(*args, **kwargs)
         self.fields['page_name'].required = True
+        self.fields['figma_link'].required = False
+        self.fields['image'].required = False
+        self.fields['order'].required = False
+
+    def clean_order(self):
+        value = self.cleaned_data.get('order')
+        if value is None or value == '':
+            return 0
+        try:
+            return int(value)
+        except (TypeError, ValueError):
+            return 0
+
+    def clean_figma_link(self):
+        value = self.cleaned_data.get('figma_link')
+        return value or None
+
+    def clean_image(self):
+        """Validate uploaded file is an image and within size limit (5MB)."""
+        value = self.cleaned_data.get('image')
+        if not value:
+            return value
+        # Allow only image content types
+        allowed_types = (
+            'image/jpeg', 'image/png', 'image/gif', 'image/webp',
+            'image/bmp', 'image/svg+xml'
+        )
+        content_type = getattr(value, 'content_type', None) or ''
+        if content_type and not content_type.lower().startswith('image/'):
+            raise forms.ValidationError('Please upload an image file (e.g. JPEG, PNG, GIF, WebP).')
+        # 5MB limit
+        if value.size > 5 * 1024 * 1024:
+            raise forms.ValidationError('Image must be 5MB or smaller.')
+        return value
+
+
+# Common HTTP response status codes for API endpoint docs
+HTTP_RESPONSE_STATUS_CHOICES = [
+    ('200', '200 - OK'),
+    ('201', '201 - Created'),
+    ('204', '204 - No Content'),
+    ('400', '400 - Bad Request'),
+    ('401', '401 - Unauthorized'),
+    ('403', '403 - Forbidden'),
+    ('404', '404 - Not Found'),
+    ('405', '405 - Method Not Allowed'),
+    ('409', '409 - Conflict'),
+    ('422', '422 - Unprocessable Entity'),
+    ('500', '500 - Internal Server Error'),
+    ('502', '502 - Bad Gateway'),
+    ('503', '503 - Service Unavailable'),
+]
 
 
 class APIEndpointForm(forms.ModelForm):
     """Form for creating and updating API endpoints"""
-    
+
+    response_status_codes = forms.ChoiceField(
+        choices=[('', '-- Select status code --')] + HTTP_RESPONSE_STATUS_CHOICES,
+        required=False,
+        widget=forms.Select(attrs={
+            'class': 'select select-bordered w-full',
+        }),
+        label='Response Status Code',
+        help_text='Select one status code this endpoint returns.',
+    )
+
     class Meta:
         model = APIEndpoint
         fields = [
@@ -425,10 +491,6 @@ class APIEndpointForm(forms.ModelForm):
                 'rows': 4,
                 'placeholder': '{\n  "Authorization": "Bearer token",\n  "Content-Type": "application/json"\n}'
             }),
-            'response_status_codes': forms.TextInput(attrs={
-                'class': 'input input-bordered w-full',
-                'placeholder': '200, 400, 401, 404'
-            }),
             'authentication_required': forms.CheckboxInput(attrs={
                 'class': 'checkbox checkbox-primary'
             }),
@@ -456,7 +518,21 @@ class APIEndpointForm(forms.ModelForm):
         else:
             self.fields['page'].queryset = APIDocumentationPage.objects.none()
         
+        # Set initial response_status_codes (single value; legacy may be comma-separated)
+        if self.instance and self.instance.pk and self.instance.response_status_codes:
+            codes = [s.strip() for s in self.instance.response_status_codes.split(',') if s.strip()]
+            first = next((c for c in codes if c in dict(HTTP_RESPONSE_STATUS_CHOICES)), None)
+            if first:
+                self.fields['response_status_codes'].initial = first
+
         self.fields['name'].required = True
         self.fields['endpoint_url'].required = True
         self.fields['http_method'].required = True
         self.fields['page'].required = True
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        instance.response_status_codes = self.cleaned_data.get('response_status_codes') or ''
+        if commit:
+            instance.save()
+        return instance

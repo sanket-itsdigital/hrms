@@ -7,10 +7,12 @@
 <div class="mb-6">
     <div class="flex justify-between items-center mb-4">
         <div>
-            <h1 class="text-3xl font-bold text-gray-900 flex items-center gap-3 mb-2">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2" />
-                </svg>
+            <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 flex items-center gap-3 mb-1">
+                <span class="flex items-center justify-center w-10 h-10 rounded-xl bg-violet-100 text-violet-600 shrink-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2" />
+                    </svg>
+                </span>
                 Kanban Board
             </h1>
             <div class="breadcrumbs text-sm">
@@ -21,16 +23,19 @@
                 </ul>
             </div>
         </div>
-        <div class="flex gap-2">
-            <select id="project-filter" class="select select-bordered">
+        <div class="flex flex-wrap items-center gap-3">
+            <div class="form-control min-w-[180px]">
+                <label class="label py-0"><span class="label-text text-xs font-medium text-gray-500">Project</span></label>
+                <select id="project-filter" class="select select-bordered select-sm w-full bg-white border-gray-200">
                 <option value="">All Projects</option>
                 {% for proj in projects %}
                 <option value="{{ proj.id }}" {% if project and project.id == proj.id %}selected{% endif %}>{{ proj.name }}</option>
                 {% endfor %}
-            </select>
+                </select>
+            </div>
             {% if user.is_ceo or user.is_pm %}
-            <a href="{% url 'tasks:create' %}" class="btn btn-primary">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <a href="{% url 'tasks:create' %}" class="btn btn-primary btn-sm shadow-sm">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                 </svg>
                 New Task
@@ -40,217 +45,242 @@
     </div>
     
     {% if project %}
-    <div class="alert alert-info mb-6">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current shrink-0 w-6 h-6">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-        </svg>
-        <span>Viewing tasks for project: <strong>{{ project.name }}</strong></span>
-        <a href="{% url 'tasks:kanban' %}" class="link link-hover ml-2">View All Projects</a>
+    <div class="flex items-center justify-between gap-4 rounded-xl border border-violet-100 bg-violet-50/80 px-4 py-3 mb-6">
+        <p class="text-sm text-gray-700"><span class="font-medium text-violet-700">Viewing:</span> {{ project.name }}</p>
+        <a href="{% url 'tasks:kanban' %}" class="btn btn-ghost btn-sm text-violet-600 hover:bg-violet-100">View All Projects</a>
     </div>
     {% endif %}
 </div>
 {% endblock %}
 
 {% block content %}
-<div class="kanban-board">
-    <!-- To Do Column -->
-    <div class="kanban-column">
-        <div class="kanban-column-header">
-            <h3 class="font-semibold text-gray-800">To Do</h3>
-            <span class="badge badge-neutral">{{ status_groups.TO_DO|length }}</span>
-        </div>
-        <div class="kanban-items" data-status="TO_DO">
-            {% for task in status_groups.TO_DO %}
-            <div class="kanban-item" data-task-id="{{ task.id }}">
-                <div class="flex justify-between items-start mb-2">
-                    <h4 class="font-semibold text-sm">
-                        <a href="{% url 'tasks:detail' task.id %}" class="hover:text-primary">{{ task.title }}</a>
-                    </h4>
-                    {% if task.priority == 'URGENT' %}
-                        <span class="badge badge-error badge-xs">Urgent</span>
-                    {% elif task.priority == 'HIGH' %}
-                        <span class="badge badge-warning badge-xs">High</span>
-                    {% endif %}
-                </div>
-                <p class="text-xs text-gray-600 mb-2">{{ task.project.name }}</p>
-                {% if task.assigned_to %}
-                <div class="flex items-center gap-1 text-xs text-gray-500">
-                    <div class="avatar placeholder">
-                        <div class="bg-blue-600 text-white rounded-full w-6">
-                            <span class="text-xs">{% if task.assigned_to.get_full_name %}{{ task.assigned_to.get_full_name|first|upper }}{% else %}{{ task.assigned_to.username|first|upper }}{% endif %}</span>
-                        </div>
-                    </div>
-                    <span>{% if task.assigned_to.get_full_name %}{{ task.assigned_to.get_full_name }}{% else %}{{ task.assigned_to.username }}{% endif %}</span>
-                </div>
-                {% endif %}
-                {% if task.deadline %}
-                <div class="text-xs text-gray-500 mt-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                    </svg>
-                    {{ task.deadline|date:"M d" }}
-                    {% if task.is_overdue %}
-                    <span class="badge badge-error badge-xs ml-1">Overdue</span>
-                    {% endif %}
-                </div>
-                {% endif %}
+<div class="kanban-board-wrapper overflow-x-auto pb-4 -mx-2 px-2">
+    <div class="kanban-board flex gap-4 min-w-max">
+        <!-- To Do Column -->
+        <div class="kanban-column flex-shrink-0 w-72 rounded-xl border border-gray-200 bg-gray-50/50 overflow-hidden">
+            <div class="kanban-column-header flex items-center justify-between gap-2 px-4 py-3 bg-slate-100 border-b border-slate-200">
+                <h3 class="font-semibold text-sm text-slate-700">To Do</h3>
+                <span class="badge badge-ghost badge-sm text-slate-600">{{ status_groups.TO_DO|length }}</span>
             </div>
-            {% empty %}
-            <div class="text-center text-gray-400 text-sm py-8">No tasks</div>
-            {% endfor %}
+            <div class="kanban-items p-3 space-y-3" data-status="TO_DO">
+                {% for task in status_groups.TO_DO %}
+                <div class="kanban-item kanban-task-card" data-task-id="{{ task.id }}">
+                    <div class="flex justify-between items-start gap-2 mb-2">
+                        <h4 class="font-semibold text-sm text-gray-900 line-clamp-2 min-w-0">
+                            <a href="{% url 'tasks:detail' task.id %}" class="hover:text-violet-600 transition-colors">{{ task.title }}</a>
+                        </h4>
+                        {% if task.priority == 'URGENT' %}
+                            <span class="badge badge-error badge-xs shrink-0">Urgent</span>
+                        {% elif task.priority == 'HIGH' %}
+                            <span class="badge badge-warning badge-xs shrink-0">High</span>
+                        {% endif %}
+                    </div>
+                    <p class="text-xs text-gray-500 mb-2 truncate" title="{{ task.project.name }}">{{ task.project.name }}</p>
+                    {% if task.assigned_to %}
+                    <div class="flex items-center gap-1.5 text-xs text-gray-500 mb-2">
+                        <div class="avatar placeholder">
+                            <div class="bg-violet-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-medium">
+                                {% if task.assigned_to.get_full_name %}{{ task.assigned_to.get_full_name|slice:":1"|upper }}{% else %}{{ task.assigned_to.username|slice:":1"|upper }}{% endif %}
+                            </div>
+                        </div>
+                        <span class="truncate">{% if task.assigned_to.get_full_name %}{{ task.assigned_to.get_full_name }}{% else %}{{ task.assigned_to.username }}{% endif %}</span>
+                    </div>
+                    {% endif %}
+                    {% if task.deadline %}
+                    <div class="flex items-center gap-1 text-xs text-gray-500 mt-2 pt-2 border-t border-gray-100">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 shrink-0 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        {{ task.deadline|date:"M d" }}
+                        {% if task.is_overdue %}
+                        <span class="badge badge-error badge-xs">Overdue</span>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+                {% empty %}
+                <div class="kanban-empty flex flex-col items-center justify-center py-10 text-gray-400">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 mb-2 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" /></svg>
+                    <span class="text-sm">No tasks</span>
+                </div>
+                {% endfor %}
+            </div>
         </div>
-    </div>
     
-    <!-- In Progress Column -->
-    <div class="kanban-column">
-        <div class="kanban-column-header">
-            <h3 class="font-semibold text-gray-800">In Progress</h3>
-            <span class="badge badge-primary">{{ status_groups.IN_PROGRESS|length }}</span>
-        </div>
-        <div class="kanban-items" data-status="IN_PROGRESS">
-            {% for task in status_groups.IN_PROGRESS %}
-            <div class="kanban-item" data-task-id="{{ task.id }}">
-                <div class="flex justify-between items-start mb-2">
-                    <h4 class="font-semibold text-sm">
-                        <a href="{% url 'tasks:detail' task.id %}" class="hover:text-primary">{{ task.title }}</a>
-                    </h4>
-                    {% if task.priority == 'URGENT' %}
-                        <span class="badge badge-error badge-xs">Urgent</span>
-                    {% elif task.priority == 'HIGH' %}
-                        <span class="badge badge-warning badge-xs">High</span>
-                    {% endif %}
-                </div>
-                <p class="text-xs text-gray-600 mb-2">{{ task.project.name }}</p>
-                {% if task.assigned_to %}
-                <div class="flex items-center gap-1 text-xs text-gray-500">
-                    <div class="avatar placeholder">
-                        <div class="bg-blue-600 text-white rounded-full w-6">
-                            <span class="text-xs">{% if task.assigned_to.get_full_name %}{{ task.assigned_to.get_full_name|first|upper }}{% else %}{{ task.assigned_to.username|first|upper }}{% endif %}</span>
-                        </div>
-                    </div>
-                    <span>{% if task.assigned_to.get_full_name %}{{ task.assigned_to.get_full_name }}{% else %}{{ task.assigned_to.username }}{% endif %}</span>
-                </div>
-                {% endif %}
-                {% if task.deadline %}
-                <div class="text-xs text-gray-500 mt-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                    </svg>
-                    {{ task.deadline|date:"M d" }}
-                    {% if task.is_overdue %}
-                    <span class="badge badge-error badge-xs ml-1">Overdue</span>
-                    {% endif %}
-                </div>
-                {% endif %}
+        <!-- In Progress Column -->
+        <div class="kanban-column flex-shrink-0 w-72 rounded-xl border border-blue-100 bg-blue-50/30 overflow-hidden">
+            <div class="kanban-column-header flex items-center justify-between gap-2 px-4 py-3 bg-blue-100 border-b border-blue-200">
+                <h3 class="font-semibold text-sm text-blue-800">In Progress</h3>
+                <span class="badge badge-info badge-sm text-blue-700">{{ status_groups.IN_PROGRESS|length }}</span>
             </div>
-            {% empty %}
-            <div class="text-center text-gray-400 text-sm py-8">No tasks</div>
-            {% endfor %}
+            <div class="kanban-items p-3 space-y-3" data-status="IN_PROGRESS">
+                {% for task in status_groups.IN_PROGRESS %}
+                <div class="kanban-item kanban-task-card" data-task-id="{{ task.id }}">
+                    <div class="flex justify-between items-start gap-2 mb-2">
+                        <h4 class="font-semibold text-sm text-gray-900 line-clamp-2 min-w-0">
+                            <a href="{% url 'tasks:detail' task.id %}" class="hover:text-violet-600 transition-colors">{{ task.title }}</a>
+                        </h4>
+                        {% if task.priority == 'URGENT' %}
+                            <span class="badge badge-error badge-xs shrink-0">Urgent</span>
+                        {% elif task.priority == 'HIGH' %}
+                            <span class="badge badge-warning badge-xs shrink-0">High</span>
+                        {% endif %}
+                    </div>
+                    <p class="text-xs text-gray-500 mb-2 truncate" title="{{ task.project.name }}">{{ task.project.name }}</p>
+                    {% if task.assigned_to %}
+                    <div class="flex items-center gap-1.5 text-xs text-gray-500 mb-2">
+                        <div class="avatar placeholder">
+                            <div class="bg-violet-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-medium">
+                                {% if task.assigned_to.get_full_name %}{{ task.assigned_to.get_full_name|slice:":1"|upper }}{% else %}{{ task.assigned_to.username|slice:":1"|upper }}{% endif %}
+                            </div>
+                        </div>
+                        <span class="truncate">{% if task.assigned_to.get_full_name %}{{ task.assigned_to.get_full_name }}{% else %}{{ task.assigned_to.username }}{% endif %}</span>
+                    </div>
+                    {% endif %}
+                    {% if task.deadline %}
+                    <div class="flex items-center gap-1 text-xs text-gray-500 mt-2 pt-2 border-t border-gray-100">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 shrink-0 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        {{ task.deadline|date:"M d" }}
+                        {% if task.is_overdue %}
+                        <span class="badge badge-error badge-xs">Overdue</span>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+                {% empty %}
+                <div class="kanban-empty flex flex-col items-center justify-center py-10 text-gray-400">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 mb-2 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" /></svg>
+                    <span class="text-sm">No tasks</span>
+                </div>
+                {% endfor %}
+            </div>
         </div>
-    </div>
     
-    <!-- Completed Column -->
-    <div class="kanban-column">
-        <div class="kanban-column-header">
-            <h3 class="font-semibold text-gray-800">Completed</h3>
-            <span class="badge badge-success">{{ status_groups.COMPLETED|length }}</span>
-        </div>
-        <div class="kanban-items" data-status="COMPLETED">
-            {% for task in status_groups.COMPLETED %}
-            <div class="kanban-item" data-task-id="{{ task.id }}">
-                <div class="flex justify-between items-start mb-2">
-                    <h4 class="font-semibold text-sm line-through text-gray-500">
-                        <a href="{% url 'tasks:detail' task.id %}" class="hover:text-primary">{{ task.title }}</a>
-                    </h4>
-                </div>
-                <p class="text-xs text-gray-600 mb-2">{{ task.project.name }}</p>
-                {% if task.assigned_to %}
-                <div class="flex items-center gap-1 text-xs text-gray-500">
-                    <div class="avatar placeholder">
-                        <div class="bg-blue-600 text-white rounded-full w-6">
-                            <span class="text-xs">{% if task.assigned_to.get_full_name %}{{ task.assigned_to.get_full_name|first|upper }}{% else %}{{ task.assigned_to.username|first|upper }}{% endif %}</span>
-                        </div>
-                    </div>
-                    <span>{% if task.assigned_to.get_full_name %}{{ task.assigned_to.get_full_name }}{% else %}{{ task.assigned_to.username }}{% endif %}</span>
-                </div>
-                {% endif %}
-                {% if task.completed_at %}
-                <div class="text-xs text-gray-500 mt-2">
-                    Completed: {{ task.completed_at|date:"M d" }}
-                </div>
-                {% endif %}
+        <!-- Completed Column -->
+        <div class="kanban-column flex-shrink-0 w-72 rounded-xl border border-green-100 bg-green-50/30 overflow-hidden">
+            <div class="kanban-column-header flex items-center justify-between gap-2 px-4 py-3 bg-green-100 border-b border-green-200">
+                <h3 class="font-semibold text-sm text-green-800">Completed</h3>
+                <span class="badge badge-success badge-sm text-green-700">{{ status_groups.COMPLETED|length }}</span>
             </div>
-            {% empty %}
-            <div class="text-center text-gray-400 text-sm py-8">No tasks</div>
-            {% endfor %}
+            <div class="kanban-items p-3 space-y-3" data-status="COMPLETED">
+                {% for task in status_groups.COMPLETED %}
+                <div class="kanban-item kanban-task-card" data-task-id="{{ task.id }}">
+                    <div class="flex justify-between items-start gap-2 mb-2">
+                        <h4 class="font-semibold text-sm line-through text-gray-500 line-clamp-2 min-w-0">
+                            <a href="{% url 'tasks:detail' task.id %}" class="hover:text-violet-600 transition-colors">{{ task.title }}</a>
+                        </h4>
+                    </div>
+                    <p class="text-xs text-gray-500 mb-2 truncate" title="{{ task.project.name }}">{{ task.project.name }}</p>
+                    {% if task.assigned_to %}
+                    <div class="flex items-center gap-1.5 text-xs text-gray-500 mb-2">
+                        <div class="avatar placeholder">
+                            <div class="bg-violet-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-medium">
+                                {% if task.assigned_to.get_full_name %}{{ task.assigned_to.get_full_name|slice:":1"|upper }}{% else %}{{ task.assigned_to.username|slice:":1"|upper }}{% endif %}
+                            </div>
+                        </div>
+                        <span class="truncate">{% if task.assigned_to.get_full_name %}{{ task.assigned_to.get_full_name }}{% else %}{{ task.assigned_to.username }}{% endif %}</span>
+                    </div>
+                    {% endif %}
+                    {% if task.completed_at %}
+                    <div class="flex items-center gap-1 text-xs text-green-600 mt-2 pt-2 border-t border-gray-100">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                        Completed {{ task.completed_at|date:"M d" }}
+                    </div>
+                    {% endif %}
+                </div>
+                {% empty %}
+                <div class="kanban-empty flex flex-col items-center justify-center py-10 text-gray-400">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 mb-2 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    <span class="text-sm">No tasks</span>
+                </div>
+                {% endfor %}
+            </div>
         </div>
-    </div>
     
-    <!-- Blocked Column -->
-    <div class="kanban-column">
-        <div class="kanban-column-header">
-            <h3 class="font-semibold text-gray-800">Blocked</h3>
-            <span class="badge badge-error">{{ status_groups.BLOCKED|length }}</span>
-        </div>
-        <div class="kanban-items" data-status="BLOCKED">
-            {% for task in status_groups.BLOCKED %}
-            <div class="kanban-item" data-task-id="{{ task.id }}">
-                <div class="flex justify-between items-start mb-2">
-                    <h4 class="font-semibold text-sm">
-                        <a href="{% url 'tasks:detail' task.id %}" class="hover:text-primary">{{ task.title }}</a>
-                    </h4>
-                    {% if task.priority == 'URGENT' %}
-                        <span class="badge badge-error badge-xs">Urgent</span>
-                    {% elif task.priority == 'HIGH' %}
-                        <span class="badge badge-warning badge-xs">High</span>
-                    {% endif %}
-                </div>
-                <p class="text-xs text-gray-600 mb-2">{{ task.project.name }}</p>
-                {% if task.assigned_to %}
-                <div class="flex items-center gap-1 text-xs text-gray-500">
-                    <div class="avatar placeholder">
-                        <div class="bg-blue-600 text-white rounded-full w-6">
-                            <span class="text-xs">{% if task.assigned_to.get_full_name %}{{ task.assigned_to.get_full_name|first|upper }}{% else %}{{ task.assigned_to.username|first|upper }}{% endif %}</span>
-                        </div>
-                    </div>
-                    <span>{% if task.assigned_to.get_full_name %}{{ task.assigned_to.get_full_name }}{% else %}{{ task.assigned_to.username }}{% endif %}</span>
-                </div>
-                {% endif %}
-                {% if task.deadline %}
-                <div class="text-xs text-gray-500 mt-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                    </svg>
-                    {{ task.deadline|date:"M d" }}
-                    {% if task.is_overdue %}
-                    <span class="badge badge-error badge-xs ml-1">Overdue</span>
-                    {% endif %}
-                </div>
-                {% endif %}
+        <!-- Blocked Column -->
+        <div class="kanban-column flex-shrink-0 w-72 rounded-xl border border-amber-100 bg-amber-50/30 overflow-hidden">
+            <div class="kanban-column-header flex items-center justify-between gap-2 px-4 py-3 bg-amber-100 border-b border-amber-200">
+                <h3 class="font-semibold text-sm text-amber-800">Blocked</h3>
+                <span class="badge badge-warning badge-sm text-amber-700">{{ status_groups.BLOCKED|length }}</span>
             </div>
-            {% empty %}
-            <div class="text-center text-gray-400 text-sm py-8">No tasks</div>
-            {% endfor %}
+            <div class="kanban-items p-3 space-y-3" data-status="BLOCKED">
+                {% for task in status_groups.BLOCKED %}
+                <div class="kanban-item kanban-task-card" data-task-id="{{ task.id }}">
+                    <div class="flex justify-between items-start gap-2 mb-2">
+                        <h4 class="font-semibold text-sm text-gray-900 line-clamp-2 min-w-0">
+                            <a href="{% url 'tasks:detail' task.id %}" class="hover:text-violet-600 transition-colors">{{ task.title }}</a>
+                        </h4>
+                        {% if task.priority == 'URGENT' %}
+                            <span class="badge badge-error badge-xs shrink-0">Urgent</span>
+                        {% elif task.priority == 'HIGH' %}
+                            <span class="badge badge-warning badge-xs shrink-0">High</span>
+                        {% endif %}
+                    </div>
+                    <p class="text-xs text-gray-500 mb-2 truncate" title="{{ task.project.name }}">{{ task.project.name }}</p>
+                    {% if task.assigned_to %}
+                    <div class="flex items-center gap-1.5 text-xs text-gray-500 mb-2">
+                        <div class="avatar placeholder">
+                            <div class="bg-violet-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-medium">
+                                {% if task.assigned_to.get_full_name %}{{ task.assigned_to.get_full_name|slice:":1"|upper }}{% else %}{{ task.assigned_to.username|slice:":1"|upper }}{% endif %}
+                            </div>
+                        </div>
+                        <span class="truncate">{% if task.assigned_to.get_full_name %}{{ task.assigned_to.get_full_name }}{% else %}{{ task.assigned_to.username }}{% endif %}</span>
+                    </div>
+                    {% endif %}
+                    {% if task.deadline %}
+                    <div class="flex items-center gap-1 text-xs text-gray-500 mt-2 pt-2 border-t border-gray-100">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 shrink-0 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        {{ task.deadline|date:"M d" }}
+                        {% if task.is_overdue %}
+                        <span class="badge badge-error badge-xs">Overdue</span>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+                {% empty %}
+                <div class="kanban-empty flex flex-col items-center justify-center py-10 text-gray-400">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 mb-2 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" /></svg>
+                    <span class="text-sm">No tasks</span>
+                </div>
+                {% endfor %}
+            </div>
         </div>
     </div>
 </div>
 
 <style>
-/* Drag and drop styles */
-.kanban-item {
+/* Kanban task cards - proper UI */
+.kanban-task-card {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    padding: 12px 14px;
     cursor: move;
     user-select: none;
+    transition: box-shadow 0.2s ease, border-color 0.2s ease, transform 0.15s ease;
+}
+.kanban-task-card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    border-color: #d1d5db;
 }
 
+/* Drag and drop */
 .kanban-item-dragging {
-    opacity: 0.5;
-    transform: rotate(2deg);
+    opacity: 0.85;
+    transform: rotate(1deg);
+    box-shadow: 0 8px 24px rgba(139, 92, 246, 0.2);
+    border-color: #8b5cf6;
 }
 
 .kanban-item-ghost {
-    opacity: 0.3;
-    background: #e5e7eb;
-    border: 2px dashed #9ca3af;
+    opacity: 0.4;
+    background: #f5f3ff;
+    border: 2px dashed #8b5cf6;
+    border-radius: 10px;
 }
 
 .kanban-item-chosen {
@@ -258,13 +288,21 @@
 }
 
 .kanban-column.drag-over {
-    background-color: #f3f4f6;
-    border: 2px dashed #8b5cf6;
-    border-radius: 8px;
+    background-color: #faf5ff;
+    border-color: #a78bfa;
+    box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.2);
 }
 
 .kanban-items {
-    min-height: 100px;
+    min-height: 120px;
+}
+
+/* Line clamp for long titles */
+.line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
 }
 </style>
 {% endblock %}

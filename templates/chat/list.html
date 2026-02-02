@@ -20,14 +20,6 @@
                 </ul>
             </div>
         </div>
-        <div class="flex gap-2">
-            <a href="{% url 'chat:create_personal' %}" class="btn btn-primary">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                </svg>
-                New Personal Chat
-            </a>
-        </div>
     </div>
 </div>
 {% endblock %}
@@ -60,11 +52,12 @@
                                                 {{ room.name }}
                                             {% endif %}
                                         </h3>
-                                        {% if room.last_message_time %}
-                                        <p class="text-xs text-gray-500 mt-1">
-                                            Last message: {{ room.last_message_time|timesince }} ago
+                                        <p class="text-xs text-gray-600 mt-1">
+                                            <span class="font-medium">{{ room.participants_count }} member{{ room.participants_count|pluralize }}</span>
+                                            {% if room.last_message_time %}
+                                            <span class="text-gray-400"> · Last: {{ room.last_message_time|timesince }} ago</span>
+                                            {% endif %}
                                         </p>
-                                        {% endif %}
                                     </div>
                                     {% if room.unread_count > 0 %}
                                     <span class="badge badge-error badge-sm">{{ room.unread_count }}</span>
@@ -158,10 +151,8 @@
                     </div>
                     {% else %}
                     <div class="text-center py-8">
-                        <p class="text-gray-500 mb-4">No personal chats yet.</p>
-                        <a href="{% url 'chat:create_personal' %}" class="btn btn-sm btn-primary">
-                            Start a Chat
-                        </a>
+                        <p class="text-gray-500 mb-4">No personal chats.</p>
+                        <p class="text-xs text-gray-400">New personal chats cannot be created.</p>
                     </div>
                     {% endif %}
                 </div>

@@ -210,3 +210,28 @@
     </div>
 </div>
 {% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var phoneInput = document.getElementById('id_phone');
+    if (!phoneInput) return;
+    phoneInput.addEventListener('keydown', function(e) {
+        var key = e.key;
+        var isDigit = key.length === 1 && key >= '0' && key <= '9';
+        var isControl = e.ctrlKey || e.metaKey || e.altKey ||
+            key === 'Backspace' || key === 'Delete' || key === 'Tab' ||
+            key === 'ArrowLeft' || key === 'ArrowRight' || key === 'ArrowUp' || key === 'ArrowDown' ||
+            key === 'Home' || key === 'End';
+        if (!isDigit && !isControl) { e.preventDefault(); }
+    });
+    function allowOnlyDigits() {
+        var val = phoneInput.value;
+        var digits = val.replace(/\D/g, '');
+        if (val !== digits) { phoneInput.value = digits; }
+    }
+    phoneInput.addEventListener('paste', function() { setTimeout(allowOnlyDigits, 0); });
+    phoneInput.addEventListener('input', allowOnlyDigits);
+});
+</script>
+{% endblock %}

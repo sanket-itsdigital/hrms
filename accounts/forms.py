@@ -22,7 +22,7 @@ class UserForm(forms.ModelForm):
         model = User
         fields = ['username', 'email', 'first_name', 'last_name', 'phone', 'profile_picture', 
                   'role', 'employee_id', 'designation', 'department', 'date_of_joining', 
-                  'birth_date', 'salary', 'is_active', 'is_staff', 'is_verified']
+                  'birth_date', 'salary', 'is_active']
         widgets = {
             'username': forms.TextInput(attrs={
                 'class': 'input input-bordered w-full'
@@ -37,7 +37,10 @@ class UserForm(forms.ModelForm):
                 'class': 'input input-bordered w-full'
             }),
             'phone': forms.TextInput(attrs={
-                'class': 'input input-bordered w-full'
+                'class': 'input input-bordered w-full',
+                'placeholder': 'Digits only',
+                'inputmode': 'numeric',
+                'pattern': '[0-9]*',
             }),
             'profile_picture': forms.FileInput(attrs={
                 'class': 'file-input file-input-bordered w-full'
@@ -71,12 +74,7 @@ class UserForm(forms.ModelForm):
             'is_active': forms.CheckboxInput(attrs={
                 'class': 'checkbox checkbox-primary'
             }),
-            'is_staff': forms.CheckboxInput(attrs={
-                'class': 'checkbox checkbox-primary'
-            }),
-            'is_verified': forms.CheckboxInput(attrs={
-                'class': 'checkbox checkbox-primary'
-            }),
+            
         }
     
     def __init__(self, *args, **kwargs):
@@ -94,7 +92,15 @@ class UserForm(forms.ModelForm):
         else:
             self.fields['password'].required = True
             self.fields['password'].help_text = "Enter password for new user"
-    
+
+    def clean_phone(self):
+        phone = self.cleaned_data.get('phone')
+        if phone:
+            phone = phone.strip()
+            if not phone.isdigit():
+                raise forms.ValidationError('Phone number must contain only digits (0-9).')
+        return phone or None
+
     def clean_email(self):
         email = self.cleaned_data.get('email')
         if email:
@@ -104,7 +110,7 @@ class UserForm(forms.ModelForm):
             if existing.exists():
                 raise forms.ValidationError('A user with this email already exists.')
         return email
-    
+
     def clean_employee_id(self):
         employee_id = self.cleaned_data.get('employee_id')
         if employee_id:
@@ -133,13 +139,24 @@ class ProfileForm(forms.ModelForm):
                 'class': 'input input-bordered w-full'
             }),
             'phone': forms.TextInput(attrs={
-                'class': 'input input-bordered w-full'
+                'class': 'input input-bordered w-full',
+                'placeholder': 'Digits only',
+                'inputmode': 'numeric',
+                'pattern': '[0-9]*',
             }),
             'profile_picture': forms.FileInput(attrs={
                 'class': 'file-input file-input-bordered w-full'
             }),
         }
-    
+
+    def clean_phone(self):
+        phone = self.cleaned_data.get('phone')
+        if phone:
+            phone = phone.strip()
+            if not phone.isdigit():
+                raise forms.ValidationError('Phone number must contain only digits (0-9).')
+        return phone or None
+
     def clean_email(self):
         email = self.cleaned_data.get('email')
         if email:

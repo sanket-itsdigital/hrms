@@ -242,15 +242,7 @@
                             <span class="label-text ml-2">Active</span>
                         </label>
                         
-                        <label class="label cursor-pointer">
-                            {{ form.is_staff }}
-                            <span class="label-text ml-2">Staff</span>
-                        </label>
-                        
-                        <label class="label cursor-pointer">
-                            {{ form.is_verified }}
-                            <span class="label-text ml-2">Verified</span>
-                        </label>
+                       
                     </div>
                 </div>
                 
@@ -269,4 +261,39 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var phoneInput = document.getElementById('id_phone');
+    if (!phoneInput) return;
+
+    // Allow only digits: block any key that is not 0-9 or a control key
+    phoneInput.addEventListener('keydown', function(e) {
+        var key = e.key;
+        var isDigit = key.length === 1 && key >= '0' && key <= '9';
+        var isControl = e.ctrlKey || e.metaKey || e.altKey ||
+            key === 'Backspace' || key === 'Delete' || key === 'Tab' ||
+            key === 'ArrowLeft' || key === 'ArrowRight' || key === 'ArrowUp' || key === 'ArrowDown' ||
+            key === 'Home' || key === 'End';
+        if (!isDigit && !isControl) {
+            e.preventDefault();
+        }
+    });
+
+    // On paste or input: strip any non-digit character
+    function allowOnlyDigits() {
+        var val = phoneInput.value;
+        var digits = val.replace(/\D/g, '');
+        if (val !== digits) {
+            phoneInput.value = digits;
+        }
+    }
+    phoneInput.addEventListener('paste', function() {
+        setTimeout(allowOnlyDigits, 0);
+    });
+    phoneInput.addEventListener('input', allowOnlyDigits);
+});
+</script>
 {% endblock %}

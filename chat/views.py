@@ -8,7 +8,7 @@ from django.views.decorators.http import require_http_methods
 from django.core.paginator import Paginator
 
 from chat.models import ChatRoom, Message
-from chat.forms import MessageForm, PersonalChatForm
+from chat.forms import MessageForm
 from projects.models import Project, ProjectAssignment
 from accounts.models import User
 
@@ -26,12 +26,14 @@ def chat_list(request):
     # Get all chat rooms user is part of
     chat_rooms = (
         ChatRoom.objects.filter(participants=user)
+        .prefetch_related("participants", "project")
         .annotate(
             last_message_time=Max("messages__created_at"),
             unread_count=Count(
                 "messages",
                 filter=Q(messages__is_read=False) & ~Q(messages__sender=user),
             ),
+            participants_count=Count("participants", distinct=True),
         )
         .order_by("-last_message_time", "-created_at")
     )
@@ -123,15 +125,17 @@ def chat_room(request, room_id):
         "display_name": display_name,
         "last_message_id": last_message_id,
     }
-    # Provide available users for admin to add to the room
-    # Exclude current participants and inactive users
-    available_users = User.objects.filter(is_active=True)
-    if user.organization:
-        available_users = available_users.filter(organization=user.organization)
-    available_users = available_users.exclude(
-        id__in=room.participants.values_list("id", flat=True)
-    ).order_by("first_name", "last_name", "username")
-    context["available_users"] = available_users
+    # Only project chats allow adding users; provide available users for CEO
+    if room.room_type == "PROJECT":
+        available_users = User.objects.filter(is_active=True)
+        if user.organization:
+            available_users = available_users.filter(organization=user.organization)
+        available_users = available_users.exclude(
+            id__in=room.participants.values_list("id", flat=True)
+        ).order_by("first_name", "last_name", "username")
+        context["available_users"] = available_users
+    else:
+        context["available_users"] = []
 
     return render(request, "chat/room.html", context)
 
@@ -139,11 +143,15 @@ def chat_room(request, room_id):
 @login_required
 @require_http_methods(["POST"])
 def add_user_to_room(request, room_id):
-    """Admin-only: add a user to the chat room participants."""
+    """CEO-only: add a user to a project chat room. Only project chats support adding users."""
     actor = request.user
     room = get_object_or_404(ChatRoom, id=room_id)
 
-    # Only allow superusers or CEO to add users (adjust as needed)
+    if room.room_type != "PROJECT":
+        return JsonResponse(
+            {"error": "Adding users is only allowed in project chats."}, status=400
+        )
+
     if not (actor.is_superuser or getattr(actor, "is_ceo", False)):
         return JsonResponse({"error": "Permission denied."}, status=403)
 
@@ -168,6 +176,46 @@ def add_user_to_room(request, room_id):
                 "name": user_to_add.get_full_name() or user_to_add.username,
             },
         }
+    )
+
+
+@login_required
+@require_http_methods(["POST"])
+def remove_user_from_room(request, room_id):
+    """CEO-only: remove a user from a project chat room."""
+    actor = request.user
+    room = get_object_or_404(ChatRoom, id=room_id)
+
+    if room.room_type != "PROJECT":
+        return JsonResponse(
+            {"error": "Removing users is only allowed in project chats."}, status=400
+        )
+
+    if not (actor.is_superuser or getattr(actor, "is_ceo", False)):
+        return JsonResponse({"error": "Permission denied."}, status=403)
+
+    user_id = request.POST.get("user_id") or request.POST.get("user")
+    if not user_id:
+        return JsonResponse({"error": "Missing user_id."}, status=400)
+
+    try:
+        user_to_remove = User.objects.get(id=user_id)
+    except User.DoesNotExist:
+        return JsonResponse({"error": "User not found."}, status=404)
+
+    if not room.participants.filter(id=user_to_remove.id).exists():
+        return JsonResponse({"error": "User is not in this room."}, status=400)
+
+    room.participants.remove(user_to_remove)
+    # Browser form POST: redirect back to room; AJAX: return JSON
+    if "application/json" not in request.headers.get("Accept", ""):
+        messages.success(
+            request,
+            f"{user_to_remove.get_full_name() or user_to_remove.username} has been removed from the chat.",
+        )
+        return redirect("chat:room", room_id=room.id)
+    return JsonResponse(
+        {"success": True, "user_id": user_to_remove.id}
     )
 
 
@@ -227,41 +275,9 @@ def create_project_chat(request, project_id):
 
 @login_required
 def create_personal_chat(request):
-    """Create or get a personal chat room with another user"""
-    user = request.user
-
-    if request.method == "POST":
-        form = PersonalChatForm(request.POST, user=user)
-        if form.is_valid():
-            other_user = form.cleaned_data["user"]
-
-            # Check if a personal chat already exists between these two users
-            existing_room = (
-                ChatRoom.objects.filter(room_type="PERSONAL", participants=user)
-                .filter(participants=other_user)
-                .distinct()
-            )
-
-            # Filter to get room with exactly these two participants
-            for room in existing_room:
-                if room.participants.count() == 2:
-                    return redirect("chat:room", room_id=room.id)
-
-            # Create new personal chat room
-            chat_room = ChatRoom.objects.create(room_type="PERSONAL", created_by=user)
-            chat_room.participants.add(user, other_user)
-
-            messages.success(
-                request,
-                f"Started chat with {other_user.get_full_name() or other_user.username}!",
-            )
-            return redirect("chat:room", room_id=chat_room.id)
-    else:
-        form = PersonalChatForm(user=user)
-
-    context = {"form": form, "user": user}
-
-    return render(request, "chat/create_personal.html", context)
+    """Personal chat creation disabled - users cannot add anyone to personal chat."""
+    messages.info(request, "Creating new personal chats is not available.")
+    return redirect("chat:list")
 
 
 @login_required

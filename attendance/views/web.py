@@ -123,6 +123,11 @@ def my_attendance(request):
     """View own attendance in calendar format with punch in/out functionality"""
     user = request.user
 
+    # CEO does not need to punch in/out
+    if user.is_ceo:
+        messages.info(request, "Attendance punch in/out is not required for CEO.")
+        return redirect("accounts:dashboard")
+
     if not user.organization:
         messages.error(request, "You are not associated with an organization.")
         return redirect("accounts:dashboard")

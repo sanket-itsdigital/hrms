@@ -27,6 +27,12 @@ class APIDocumentationPage(models.Model):
         null=True,
         help_text="Description of the page and its functionality"
     )
+    image = models.FileField(
+        upload_to='api_docs/pages/',
+        blank=True,
+        null=True,
+        help_text="Upload an image for this page (e.g. screenshot or mockup)"
+    )
     order = models.IntegerField(
         default=0,
         help_text="Order for displaying pages"

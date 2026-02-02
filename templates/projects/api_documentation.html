@@ -56,7 +56,13 @@
                 <div class="card shadow-xl bg-base-100">
                     <div class="card-body">
                         <div class="flex justify-between items-start mb-4">
-                            <div>
+                            <div class="flex items-start gap-4">
+                                {% if page.image %}
+                                <a href="{{ page.image.url }}" target="_blank" class="shrink-0 block rounded-lg overflow-hidden border border-gray-200 bg-gray-50" title="View full image">
+                                    <img src="{{ page.image.url }}" alt="{{ page.page_name }}" class="w-20 h-20 object-cover" />
+                                </a>
+                                {% endif %}
+                                <div>
                                 <h2 class="card-title text-2xl mb-2">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -74,6 +80,7 @@
                                 {% if page.description %}
                                 <p class="text-gray-600 mt-2">{{ page.description }}</p>
                                 {% endif %}
+                                </div>
                             </div>
                             {% if can_manage %}
                             <div class="flex gap-2">

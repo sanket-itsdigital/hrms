@@ -42,45 +42,45 @@
         {% endif %}
     </div>
     
-    <!-- Statistics Cards -->
+    <!-- Statistics Cards (labels in Title Case like Proposal Sent, Total Revenue) -->
     <div class="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-8 gap-4 mb-6">
         <div class="stat stat-card gradient-primary text-white rounded-xl">
-            <div class="stat-title text-white/90 font-semibold">Total Leads</div>
+            <div class="stat-title text-white/90 font-semibold text-sm leading-tight">Total Leads</div>
             <div class="stat-value text-3xl font-bold text-white">{{ total_leads }}</div>
         </div>
         
         <div class="stat stat-card bg-blue-600 text-white rounded-xl">
-            <div class="stat-title text-white/90 font-semibold">New</div>
+            <div class="stat-title text-white/90 font-semibold text-sm leading-tight">New</div>
             <div class="stat-value text-3xl font-bold text-white">{{ new_count }}</div>
         </div>
         
         <div class="stat stat-card bg-cyan-600 text-white rounded-xl">
-            <div class="stat-title text-white/90 font-semibold">Contacted</div>
+            <div class="stat-title text-white/90 font-semibold text-sm leading-tight">Contacted</div>
             <div class="stat-value text-3xl font-bold text-white">{{ contacted_count }}</div>
         </div>
         
         <div class="stat stat-card bg-indigo-600 text-white rounded-xl">
-            <div class="stat-title text-white/90 font-semibold">Proposal Sent</div>
+            <div class="stat-title text-white/90 font-semibold text-sm leading-tight">Proposal Sent</div>
             <div class="stat-value text-3xl font-bold text-white">{{ proposal_sent_count }}</div>
         </div>
         
         <div class="stat stat-card bg-purple-600 text-white rounded-xl">
-            <div class="stat-title text-white/90 font-semibold">Negotiation</div>
+            <div class="stat-title text-white/90 font-semibold text-sm leading-tight">Negotiation</div>
             <div class="stat-value text-3xl font-bold text-white">{{ negotiation_count }}</div>
         </div>
         
         <div class="stat stat-card gradient-success text-white rounded-xl">
-            <div class="stat-title text-white/90 font-semibold">Won</div>
+            <div class="stat-title text-white/90 font-semibold text-sm leading-tight">Won</div>
             <div class="stat-value text-3xl font-bold text-white">{{ won_count }}</div>
         </div>
         
         <div class="stat stat-card gradient-error text-white rounded-xl">
-            <div class="stat-title text-white/90 font-semibold">Lost</div>
+            <div class="stat-title text-white/90 font-semibold text-sm leading-tight">Lost</div>
             <div class="stat-value text-3xl font-bold text-white">{{ lost_count }}</div>
         </div>
         
         <div class="stat stat-card bg-gradient-to-br from-green-600 to-green-700 text-white rounded-xl">
-            <div class="stat-title text-white/90 font-semibold">Total Revenue</div>
+            <div class="stat-title text-white/90 font-semibold text-sm leading-tight">Total Revenue</div>
             <div class="stat-value text-2xl font-bold text-white">₹{{ total_revenue|floatformat:0 }}</div>
         </div>
     </div>
@@ -90,7 +90,7 @@
         <div class="card-body">
             <div class="flex items-center justify-between">
                 <div>
-                    <h3 class="text-lg font-semibold">Pipeline Revenue</h3>
+                    <h3 class="text-lg font-semibold text-gray-900">Pipeline Revenue</h3>
                     <p class="text-2xl font-bold text-blue-600">₹{{ pipeline_revenue|floatformat:0 }}</p>
                 </div>
                 <div class="text-sm text-gray-500">

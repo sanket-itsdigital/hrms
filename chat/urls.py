@@ -7,7 +7,7 @@ from chat.views import (
     send_message,
     get_messages,
 )
-from chat.views import add_user_to_room
+from chat.views import add_user_to_room, remove_user_from_room
 
 app_name = "chat"
 
@@ -22,5 +22,6 @@ urlpatterns = [
     path("personal/create/", create_personal_chat, name="create_personal"),
     path("room/<int:room_id>/send/", send_message, name="send_message"),
     path("room/<int:room_id>/add_user/", add_user_to_room, name="add_user"),
+    path("room/<int:room_id>/remove_user/", remove_user_from_room, name="remove_user"),
     path("room/<int:room_id>/messages/", get_messages, name="get_messages"),
 ]

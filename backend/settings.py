@@ -118,24 +118,24 @@ WSGI_APPLICATION = "backend.wsgi.application"
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
 # Using SQLite for development (can be changed to PostgreSQL in production)
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
-    }
-}
-
-# Uncomment below to use PostgreSQL instead
 # DATABASES = {
-#     'default': {
-#         'ENGINE': config('DB_ENGINE', default='django.db.backends.postgresql'),
-#         'NAME': config('DB_NAME', default='hrms_db'),
-#         'USER': config('DB_USER', default='postgres'),
-#         'PASSWORD': config('DB_PASSWORD', default='postgres'),
-#         'HOST': config('DB_HOST', default='localhost'),
-#         'PORT': config('DB_PORT', default='5432'),
+#     "default": {
+#         "ENGINE": "django.db.backends.sqlite3",
+#         "NAME": BASE_DIR / "db.sqlite3",
 #     }
 # }
+
+# Uncomment below to use PostgreSQL instead
+DATABASES = {
+    'default': {
+        'ENGINE': config('DB_ENGINE', default='django.db.backends.postgresql'),
+        'NAME': config('DB_NAME', default='hrms_db'),
+        'USER': config('DB_USER', default='hrms_user'),
+        'PASSWORD': config('DB_PASSWORD', default='Hrms@1234'),
+        'HOST': config('DB_HOST', default='localhost'),
+        'PORT': config('DB_PORT', default='5432'),
+    }
+}
 
 
 # Password validation
@@ -229,6 +229,7 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:8000",
     "http://127.0.0.1:3000",
     "http://127.0.0.1:8000",
+    "http://hrms.itsdigital.in"
 ]
 
 CORS_ALLOW_CREDENTIALS = True

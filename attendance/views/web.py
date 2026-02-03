@@ -276,15 +276,17 @@ def my_attendance(request):
                 is_company_holiday = date in holiday_dates
                 is_holiday = is_sunday or is_company_holiday
                 is_future = date > today
-                week_data.append({
-                    "day": day,
-                    "date": date,
-                    "attendance": attendance,
-                    "is_sunday": is_sunday,
-                    "is_holiday": is_holiday,
-                    "holiday_names": holidays_by_date.get(date, []),
-                    "is_future": is_future,
-                })
+                week_data.append(
+                    {
+                        "day": day,
+                        "date": date,
+                        "attendance": attendance,
+                        "is_sunday": is_sunday,
+                        "is_holiday": is_holiday,
+                        "holiday_names": holidays_by_date.get(date, []),
+                        "is_future": is_future,
+                    }
+                )
         calendar_data.append(week_data)
 
     # Statistics for the month
@@ -382,7 +384,9 @@ def attendance_calendar_view(request):
         month = timezone.now().month
 
     calendar_data = []
-    present_days = absent_days = leave_days = late_days = half_days = wfh_days = total_days = 0
+    present_days = absent_days = leave_days = late_days = half_days = wfh_days = (
+        total_days
+    ) = 0
 
     if selected_user:
         attendances = Attendance.objects.filter(
@@ -392,7 +396,9 @@ def attendance_calendar_view(request):
             date__month=month,
         ).order_by("date")
 
-        holidays_by_date = Holiday.get_holidays_by_date_for_month(organization, year, month)
+        holidays_by_date = Holiday.get_holidays_by_date_for_month(
+            organization, year, month
+        )
         holiday_dates = set(holidays_by_date.keys())
 
         today = timezone.now().date()
@@ -409,15 +415,17 @@ def attendance_calendar_view(request):
                     is_company_holiday = date in holiday_dates
                     is_holiday = is_sunday or is_company_holiday
                     is_future = date > today
-                    week_data.append({
-                        "day": day,
-                        "date": date,
-                        "attendance": att,
-                        "is_sunday": is_sunday,
-                        "is_holiday": is_holiday,
-                        "holiday_names": holidays_by_date.get(date, []),
-                        "is_future": is_future,
-                    })
+                    week_data.append(
+                        {
+                            "day": day,
+                            "date": date,
+                            "attendance": att,
+                            "is_sunday": is_sunday,
+                            "is_holiday": is_holiday,
+                            "holiday_names": holidays_by_date.get(date, []),
+                            "is_future": is_future,
+                        }
+                    )
             calendar_data.append(week_data)
 
         total_days = len([d for week in cal for d in week if d != 0])
@@ -499,7 +507,28 @@ def create_attendance(request):
             )
             return redirect("attendance:list")
     else:
-        form = AttendanceForm(user=user, organization=user.organization)
+        initial = None
+        if request.GET.get("user") and request.GET.get("date"):
+            try:
+                uid = int(request.GET.get("user"))
+                from datetime import datetime as dt
+
+                d = dt.strptime(request.GET.get("date"), "%Y-%m-%d").date()
+                if (
+                    user.organization
+                    and User.objects.filter(id=uid, organization=user.organization)
+                    .exclude(role__name="CEO")
+                    .exclude(is_superuser=True)
+                    .exists()
+                ):
+                    initial = {"user": uid, "date": d}
+            except (ValueError, TypeError):
+                pass
+        form = AttendanceForm(
+            user=user,
+            organization=user.organization,
+            initial=initial or {},
+        )
 
     return render(
         request,
@@ -510,12 +539,23 @@ def create_attendance(request):
 
 @login_required
 def update_attendance(request, id):
-    """Update an existing attendance record"""
+    """Update an existing attendance record. HR and CEO can manually change any employee's attendance."""
     user = request.user
     attendance = get_object_or_404(Attendance, id=id)
 
     # Check permissions
-    if not (user.is_ceo or user.is_hr):
+    if user.is_ceo or user.is_hr:
+        # Must be same organization; cannot edit CEO's attendance
+        if not user.organization or attendance.organization_id != user.organization_id:
+            messages.error(
+                request, "You do not have permission to edit this attendance record."
+            )
+            return redirect("attendance:list")
+        if attendance.user.role and attendance.user.role.name == "CEO":
+            messages.error(request, "Cannot edit attendance for CEO.")
+            return redirect("attendance:list")
+    else:
+        # Others can only edit their own record
         if attendance.user != user:
             messages.error(
                 request, "You do not have permission to edit this attendance record."

@@ -144,6 +144,7 @@
                                                         {{ day_data.attendance.check_in|time:"H:i" }}{% if day_data.attendance.check_out %} – {{ day_data.attendance.check_out|time:"H:i" }}{% endif %}
                                                     </div>
                                                 {% endif %}
+                                                <a href="{% url 'attendance:update' day_data.attendance.id %}" class="text-[10px] link link-primary link-hover mt-1 font-medium" title="Edit attendance">Edit</a>
                                             {% else %}
                                                 {% if day_data.is_future %}
                                                     <span class="text-gray-300 text-xs">—</span>
@@ -153,6 +154,9 @@
                                                     </div>
                                                 {% else %}
                                                     <div class="badge badge-error badge-sm w-full justify-center shadow-sm opacity-90">Absent</div>
+                                                    {% if not day_data.is_future and not day_data.is_holiday %}
+                                                    <a href="{% url 'attendance:create' %}?user={{ selected_user.id }}&date={{ day_data.date|date:'Y-m-d' }}" class="text-[10px] link link-primary link-hover mt-1 font-medium" title="Add attendance">Add</a>
+                                                    {% endif %}
                                                 {% endif %}
                                             {% endif %}
                                         </div>

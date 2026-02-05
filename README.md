@@ -80,6 +80,15 @@ env\Scripts\activate  # On Windows
 pip install -r requirements.txt
 ```
 
+**Frontend (Tailwind CSS + DaisyUI)** – required for production (no CDN):
+
+```bash
+npm install
+npm run build:css
+```
+
+This generates `static/css/tailwind.css`. For development with auto-rebuild: `npm run watch:css`.
+
 ### Step 3: Configure Environment Variables
 
 Edit the `.env` file with your configuration:
